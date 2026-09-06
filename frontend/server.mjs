@@ -11,7 +11,8 @@ createServer(async (req, res) => {
   if (req.url?.startsWith('/api/trade-receipt')) return receipt(req, res);
   if (req.url?.startsWith('/api/trade-history')) return history(req, res);
   try {
-    const url = req.url === '/' ? '/index.html' : req.url?.split('?')[0] || '/index.html';
+    const cleanUrl = req.url?.split('?')[0] || '/';
+    const url = cleanUrl === '/' ? '/index.html' : cleanUrl;
     const path = resolve('dist', `.${url}`);
     const body = await readFile(path);
     res.setHeader('Content-Type', types[extname(path)] || 'application/octet-stream');
