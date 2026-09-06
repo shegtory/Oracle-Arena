@@ -1,0 +1,2359 @@
+[
+  {
+    "schemaVersion": 2,
+    "cycleId": "6ac54732-d246-4a66-a9f4-5d9f3892d56c",
+    "startedAt": "2026-09-06T15:16:26.327Z",
+    "currentStage": "complete",
+    "stageStartedAt": "2026-09-06T15:18:53.813Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://rpc.ankr.com/somnia_testnet"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481347638",
+      "fromBlock": "481345639",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "metadataSource": "on-chain MarketCreated event",
+      "candidates": [
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000015273",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 17,
+          "question": "Pricefeed test: will ETH/USDC's price be at or above 2477.92 at unix time 1788707940?",
+          "strike": "2477.92",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000015272",
+          "asset": "BTC",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 17,
+          "question": "Pricefeed test: will BTC/USDC's price be at or above 79584.69 at unix time 1788707940?",
+          "strike": "79584.69",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        }
+      ],
+      "openingPriceError": "@somnia-chain/markets-sdk: indexer OpeningRefs failed: HTTP 403"
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13370326",
+        "txHash": "0xb1305f72ae2acd9c50350e54c63222434a8a9d23cf37137fd5607d4f91379b6a",
+        "valueWei": "120000000000000000",
+        "raw": "7951700000000",
+        "usd": 79517,
+        "receivedAt": "2026-09-06T15:16:32.065Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13370447",
+        "txHash": "0xa71a29447ab357488a0310d2143e354d73f2da5cc95254a5246f54f3d8e1224a",
+        "valueWei": "120000000000000000",
+        "raw": "7957100000000",
+        "usd": 79571,
+        "receivedAt": "2026-09-06T15:18:36.561Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13370452",
+        "txHash": "0x509b51bd1ed4c0081588c11e6641f7ebb9e3fbc65269840113bc7f914a564fc4",
+        "valueWei": "120000000000000000",
+        "raw": "247844000000",
+        "usd": 2478.44,
+        "receivedAt": "2026-09-06T15:18:39.832Z"
+      },
+      "changePct": 0.0679100066652414,
+      "trend": "UP"
+    },
+    "marketContext": {
+      "marketId": "0x0000000000000000000000000000000000000000000000000000000000015272",
+      "asset": "BTC",
+      "question": "Pricefeed test: will BTC/USDC's price be at or above 79584.69 at unix time 1788707940?",
+      "strike": 79584.69,
+      "strikeRaw": "7958469",
+      "openingPrice": null,
+      "openingPriceRaw": null,
+      "bestYesAsk": 0.342,
+      "bestNoAsk": 0.686,
+      "mid": 0.514,
+      "tradingStart": 1788707880,
+      "expiry": 1788707940,
+      "secondsLeft": 15,
+      "timeLeft": 15,
+      "intervalSec": 60,
+      "status": 1,
+      "yesAsks": [
+        [
+          0.342,
+          200
+        ],
+        [
+          0.352,
+          330
+        ],
+        [
+          0.372,
+          460
+        ]
+      ],
+      "noAsks": [
+        [
+          0.686,
+          200
+        ],
+        [
+          0.697,
+          330
+        ],
+        [
+          0.698,
+          460
+        ],
+        [
+          0.723,
+          25
+        ]
+      ]
+    },
+    "llmDecision": {
+      "requestId": "13370464",
+      "txHash": "0xa75cdd373c3f3d69d7656b8919cda690aa06271596ea22c6a70f0d2d90895341",
+      "valueWei": "240000000000000000",
+      "raw": "{\n  \"decision\": \"UP\",\n  \"reasoning\": \"The current spot price is below the strike but trending upward, and there is enough time left for the price to potentially cross the strike.\",\n  \"confidence\": \"medium\"\n}",
+      "decision": "UP",
+      "reasoning": "The current spot price is below the strike but trending upward, and there is enough time left for the price to potentially cross the strike.",
+      "confidence": "medium",
+      "receivedAt": "2026-09-06T15:18:53.812Z",
+      "promptSent": "You are a conservative crypto signal agent for a binary event contract.\nYou must output ONLY valid JSON: {\"decision\":\"UP|DOWN|SKIP\",\"reasoning\":\"one sentence\",\"confidence\":\"low|medium|high\"}\n\n=== MARKET CONTEXT (the specific contract you would trade) ===\nAsset:              BTC\nMarket ID:          0x0000000000000000000000000000000000000000000000000000000000015272\nStrike (resolve against): $79584.69\nCurrent BTC/USD spot: 79571.00  (moved from 79517.00 in 120s, 0.0679%, trend UP)\nBest YES ask:       0.3420   (prob of YES ≈ 34.20%)\nBest NO ask:        0.6860   (prob of NO ≈ 68.60%)\nMid probability:    0.5140\nTime left until expiry: 15s\nCadence:            60s (1m)\nStatus:             Trading\n\n=== WHAT THE DECISION MEANS ===\n- UP = buy YES  (bet the event happens / price closes at-or-above strike)\n- DOWN = buy NO  (bet the event does not happen / price closes below strike)\n- SKIP = no trade this cycle\n\n=== REASONING GUIDANCE ===\nThink relative to THIS contract's strike, not generic momentum.\nAsk yourself:\n  1. Is the current spot price above or below the strike, and is it trending toward or away from it?\n  2. Does the current spot price, projected forward over the time left, plausibly cross the strike?\n  3. Does the order-book implied probability (YES ask / NO ask) agree or disagree with the spot trend?\n  4. Is there enough time left for the trend to resolve, or is expiry too close?\n  5. Is the evidence weak or conflicting — if so, SKIP.\n\nStrike relation (spot vs strike, trend direction): below_strike_rising\n\n{{\"decision\":\"UP|DOWN|SKIP\",\"reasoning\":\"...\",\"confidence\":\"low|medium|high\"}}"
+    },
+    "riskGate": {
+      "allowed": false,
+      "reason": "15s left; minimum is 15s",
+      "checkedAt": "2026-09-06T15:18:53.818Z",
+      "marketId": "0x0000000000000000000000000000000000000000000000000000000000015272",
+      "pool": "0x319d53f9d8d9609F024C8c5bC0e9e87bf17aB205",
+      "tradingStart": 1788707880,
+      "expiry": 1788707940,
+      "windowSeconds": 60,
+      "outcome": "YES",
+      "bestAsk": 0.342,
+      "limitPrice": 0.353,
+      "sizeShares": 14.164,
+      "maxCostTUSDC": 4.999892,
+      "secondsLeft": 15,
+      "liquidityShares": 530
+    },
+    "order": {
+      "status": "skipped",
+      "reason": "15s left; minimum is 15s"
+    },
+    "error": null,
+    "finishedAt": "2026-09-06T15:18:53.818Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "fbc5d79a-bfc7-4415-8535-2e5c90c024b0",
+    "startedAt": "2026-09-06T13:48:35.485Z",
+    "currentStage": "complete",
+    "stageStartedAt": "2026-09-06T13:51:00.581Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://rpc.ankr.com/somnia_testnet"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481294929",
+      "fromBlock": "481292930",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "metadataSource": "on-chain MarketCreated event",
+      "candidates": [
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001519c",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 10,
+          "question": "Pricefeed test: will ETH/USDC's price be at or above 2493.21 at unix time 1788702660?",
+          "strike": "2493.21",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001519b",
+          "asset": "BTC",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 9,
+          "question": "Pricefeed test: will BTC/USDC's price be at or above 79821.02 at unix time 1788702660?",
+          "strike": "79821.02",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001519a",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 248,
+          "question": "Pricefeed test: will ETH/USDC's price be at or above 2493.21 at unix time 1788702900?",
+          "strike": "2493.21",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000015199",
+          "asset": "BTC",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 248,
+          "question": "Pricefeed test: will BTC/USDC's price be at or above 79821.02 at unix time 1788702900?",
+          "strike": "79821.02",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        }
+      ],
+      "openingPriceError": "@somnia-chain/markets-sdk: indexer OpeningRefs failed: HTTP 403"
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13365092",
+        "txHash": "0x2bab69a6baaba4b5a53722d4191bbff01b3c32c956f35dcd1164272fe1e55cba",
+        "valueWei": "120000000000000000",
+        "raw": "7981900000000",
+        "usd": 79819,
+        "receivedAt": "2026-09-06T13:48:40.036Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13365214",
+        "txHash": "0xef402b583def30e1a84f2cc25278eb0e8e9c32f6ff119ffd9ac4b644f98f8ee9",
+        "valueWei": "120000000000000000",
+        "raw": "7982800000000",
+        "usd": 79828,
+        "receivedAt": "2026-09-06T13:50:44.608Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13365218",
+        "txHash": "0xda5d0e35dec3a424670b7af5780a097c779b40087229bc5b4f2005c613cbdf80",
+        "valueWei": "120000000000000000",
+        "raw": "249393000000",
+        "usd": 2493.93,
+        "receivedAt": "2026-09-06T13:50:47.876Z"
+      },
+      "changePct": 0.011275510843282927,
+      "trend": "UP"
+    },
+    "marketContext": {
+      "marketId": "0x0000000000000000000000000000000000000000000000000000000000015199",
+      "asset": "BTC",
+      "question": "Pricefeed test: will BTC/USDC's price be at or above 79821.02 at unix time 1788702900?",
+      "strike": 79821.02,
+      "strikeRaw": "7982102",
+      "openingPrice": null,
+      "openingPriceRaw": null,
+      "bestYesAsk": 0.583,
+      "bestNoAsk": 0.446,
+      "mid": 0.5145,
+      "tradingStart": 1788702600,
+      "expiry": 1788702900,
+      "secondsLeft": 247,
+      "timeLeft": 247,
+      "intervalSec": 300,
+      "status": 1,
+      "yesAsks": [
+        [
+          0.583,
+          200
+        ],
+        [
+          0.593,
+          330
+        ],
+        [
+          0.604,
+          460
+        ]
+      ],
+      "noAsks": [
+        [
+          0.446,
+          200
+        ],
+        [
+          0.457,
+          330
+        ],
+        [
+          0.468,
+          460
+        ]
+      ]
+    },
+    "llmDecision": {
+      "requestId": "13365230",
+      "txHash": "0x379d3a92dd6e6231b86d37b8fd566c4ec88d4eab4c2775857afefdb366fa1ca3",
+      "valueWei": "240000000000000000",
+      "raw": "{\"decision\":\"UP\",\"reasoning\":\"The current spot price is above the strike and trending upward, suggesting a higher likelihood of closing at or above the strike.\",\"confidence\":\"medium\"}",
+      "decision": "UP",
+      "reasoning": "The current spot price is above the strike and trending upward, suggesting a higher likelihood of closing at or above the strike.",
+      "confidence": "medium",
+      "receivedAt": "2026-09-06T13:51:00.580Z",
+      "promptSent": "You are a conservative crypto signal agent for a binary event contract.\nYou must output ONLY valid JSON: {\"decision\":\"UP|DOWN|SKIP\",\"reasoning\":\"one sentence\",\"confidence\":\"low|medium|high\"}\n\n=== MARKET CONTEXT (the specific contract you would trade) ===\nAsset:              BTC\nMarket ID:          0x0000000000000000000000000000000000000000000000000000000000015199\nStrike (resolve against): $79821.02\nCurrent BTC/USD spot: 79828.00  (moved from 79819.00 in 120s, 0.0113%, trend UP)\nBest YES ask:       0.5830   (prob of YES ≈ 58.30%)\nBest NO ask:        0.4460   (prob of NO ≈ 44.60%)\nMid probability:    0.5145\nTime left until expiry: 247s\nCadence:            300s (5m)\nStatus:             Trading\n\n=== WHAT THE DECISION MEANS ===\n- UP = buy YES  (bet the event happens / price closes at-or-above strike)\n- DOWN = buy NO  (bet the event does not happen / price closes below strike)\n- SKIP = no trade this cycle\n\n=== REASONING GUIDANCE ===\nThink relative to THIS contract's strike, not generic momentum.\nAsk yourself:\n  1. Is the current spot price above or below the strike, and is it trending toward or away from it?\n  2. Does the current spot price, projected forward over the time left, plausibly cross the strike?\n  3. Does the order-book implied probability (YES ask / NO ask) agree or disagree with the spot trend?\n  4. Is there enough time left for the trend to resolve, or is expiry too close?\n  5. Is the evidence weak or conflicting — if so, SKIP.\n\nStrike relation (spot vs strike, trend direction): above_strike_rising\n\n{{\"decision\":\"UP|DOWN|SKIP\",\"reasoning\":\"...\",\"confidence\":\"low|medium|high\"}}"
+    },
+    "riskGate": {
+      "allowed": true,
+      "reason": "all deterministic checks passed",
+      "checkedAt": "2026-09-06T13:51:00.581Z",
+      "marketId": "0x0000000000000000000000000000000000000000000000000000000000015199",
+      "pool": "0x796EBedaA3bd0097fC84d8095d50118D923D2Ee0",
+      "tradingStart": 1788702600,
+      "expiry": 1788702900,
+      "windowSeconds": 300,
+      "outcome": "YES",
+      "bestAsk": 0.583,
+      "limitPrice": 0.593,
+      "sizeShares": 8.431000000000001,
+      "maxCostTUSDC": 4.999583,
+      "secondsLeft": 247,
+      "liquidityShares": 530
+    },
+    "order": {
+      "status": "confirmed",
+      "submittedAt": "2026-09-06T13:51:06.858Z",
+      "txHash": "0x7777d49cbd2942f5484956d8bb5f00a49d8b8afa4695da53d9524a807365361c",
+      "receiptStatus": "success",
+      "blockNumber": "481295121",
+      "gasUsed": "828682",
+      "filledShares": 8.431,
+      "submittedSizeShares": 8.431,
+      "price": 0.593,
+      "rested": false,
+      "orderId": "147573952589676421026",
+      "fillCount": 1
+    },
+    "error": null,
+    "finishedAt": "2026-09-06T13:51:06.858Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "efc7d052-8216-46c5-b0f7-fc2e78eae9fc",
+    "startedAt": "2026-09-06T13:44:19.556Z",
+    "currentStage": "error",
+    "stageStartedAt": "2026-09-06T13:46:45.356Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://rpc.ankr.com/somnia_testnet"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481292374",
+      "fromBlock": "481290375",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "metadataSource": "on-chain MarketCreated event",
+      "candidates": [
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000015192",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 25,
+          "question": "Pricefeed test: will ETH/USDC's price be at or above 2493.23 at unix time 1788702420?",
+          "strike": "2493.23",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000015191",
+          "asset": "BTC",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 25,
+          "question": "Pricefeed test: will BTC/USDC's price be at or above 79823.95 at unix time 1788702420?",
+          "strike": "79823.95",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001518e",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 203,
+          "question": "Pricefeed test: will ETH/USDC's price be at or above 2492.96 at unix time 1788702600?",
+          "strike": "2492.96",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        }
+      ],
+      "openingPriceError": "@somnia-chain/markets-sdk: indexer OpeningRefs failed: HTTP 403"
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13364832",
+        "txHash": "0x3db70c307683145a8321ebddf99ae2c578dd9e383e99ee03ffc0cc5d8e186f7d",
+        "valueWei": "120000000000000000",
+        "raw": "7980900000000",
+        "usd": 79809,
+        "receivedAt": "2026-09-06T13:44:24.556Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13364960",
+        "txHash": "0xff39d682b2f04b6128fbda7f96dbd91bab5bdf44d2815d4519a33867280e6cdf",
+        "valueWei": "120000000000000000",
+        "raw": "7979100000000",
+        "usd": 79791,
+        "receivedAt": "2026-09-06T13:46:28.876Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13364964",
+        "txHash": "0xb2c5bbff537197531786c088bb9a31154eb37feba784037fba1a36328aa769c5",
+        "valueWei": "120000000000000000",
+        "raw": "249245000000",
+        "usd": 2492.45,
+        "receivedAt": "2026-09-06T13:46:32.075Z"
+      },
+      "changePct": -0.02255384731045371,
+      "trend": "DOWN"
+    },
+    "marketContext": {
+      "marketId": "0x0000000000000000000000000000000000000000000000000000000000015191",
+      "asset": "BTC",
+      "question": "Pricefeed test: will BTC/USDC's price be at or above 79823.95 at unix time 1788702420?",
+      "strike": 79823.95,
+      "strikeRaw": "7982395",
+      "openingPrice": null,
+      "openingPriceRaw": null,
+      "bestYesAsk": 0.98,
+      "bestNoAsk": 0.041,
+      "mid": 0.5105,
+      "tradingStart": 1788702360,
+      "expiry": 1788702420,
+      "secondsLeft": 23,
+      "timeLeft": 23,
+      "intervalSec": 60,
+      "status": 1,
+      "yesAsks": [
+        [
+          0.98,
+          200
+        ],
+        [
+          0.988,
+          330
+        ],
+        [
+          0.989,
+          460
+        ]
+      ],
+      "noAsks": [
+        [
+          0.041,
+          200
+        ],
+        [
+          0.048,
+          330
+        ],
+        [
+          0.062,
+          460
+        ]
+      ]
+    },
+    "llmDecision": {
+      "requestId": "13364976",
+      "txHash": "0x2f99e855834aaf148e3d68ef232eafa822683bf91ea412ec119c59f4b819b62d",
+      "valueWei": "240000000000000000",
+      "raw": "{\"decision\":\"DOWN\",\"reasoning\":\"The current spot price is below the strike and trending downward, with low time left for a reversal, making it unlikely to cross the strike before expiry.\",\"confidence\":\"high\"}",
+      "decision": "DOWN",
+      "reasoning": "The current spot price is below the strike and trending downward, with low time left for a reversal, making it unlikely to cross the strike before expiry.",
+      "confidence": "high",
+      "receivedAt": "2026-09-06T13:46:45.355Z",
+      "promptSent": "You are a conservative crypto signal agent for a binary event contract.\nYou must output ONLY valid JSON: {\"decision\":\"UP|DOWN|SKIP\",\"reasoning\":\"one sentence\",\"confidence\":\"low|medium|high\"}\n\n=== MARKET CONTEXT (the specific contract you would trade) ===\nAsset:              BTC\nMarket ID:          0x0000000000000000000000000000000000000000000000000000000000015191\nStrike (resolve against): $79823.95\nCurrent BTC/USD spot: 79791.00  (moved from 79809.00 in 120s, -0.0226%, trend DOWN)\nBest YES ask:       0.9800   (prob of YES ≈ 98.00%)\nBest NO ask:        0.0410   (prob of NO ≈ 4.10%)\nMid probability:    0.5105\nTime left until expiry: 23s\nCadence:            60s (1m)\nStatus:             Trading\n\n=== WHAT THE DECISION MEANS ===\n- UP = buy YES  (bet the event happens / price closes at-or-above strike)\n- DOWN = buy NO  (bet the event does not happen / price closes below strike)\n- SKIP = no trade this cycle\n\n=== REASONING GUIDANCE ===\nThink relative to THIS contract's strike, not generic momentum.\nAsk yourself:\n  1. Is the current spot price above or below the strike, and is it trending toward or away from it?\n  2. Does the current spot price, projected forward over the time left, plausibly cross the strike?\n  3. Does the order-book implied probability (YES ask / NO ask) agree or disagree with the spot trend?\n  4. Is there enough time left for the trend to resolve, or is expiry too close?\n  5. Is the evidence weak or conflicting — if so, SKIP.\n\nStrike relation (spot vs strike, trend direction): below_strike_falling\n\n{{\"decision\":\"UP|DOWN|SKIP\",\"reasoning\":\"...\",\"confidence\":\"low|medium|high\"}}"
+    },
+    "riskGate": {
+      "allowed": true,
+      "reason": "all deterministic checks passed",
+      "checkedAt": "2026-09-06T13:46:45.356Z",
+      "marketId": "0x0000000000000000000000000000000000000000000000000000000000015191",
+      "pool": "0x7bd3291daa3C50Aba21808162417f1b217eC3375",
+      "tradingStart": 1788702360,
+      "expiry": 1788702420,
+      "windowSeconds": 60,
+      "outcome": "NO",
+      "bestAsk": 0.041,
+      "limitPrice": 0.052,
+      "sizeShares": 96.153,
+      "maxCostTUSDC": 4.999956,
+      "secondsLeft": 23,
+      "liquidityShares": 530
+    },
+    "order": null,
+    "error": {
+      "at": "2026-09-06T13:46:46.579Z",
+      "message": "transport.subscribe is not a function"
+    },
+    "finishedAt": "2026-09-06T13:46:46.579Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "a1c6a5ae-5ce2-4675-8d8c-6897ca0687a5",
+    "startedAt": "2026-09-06T13:41:42.885Z",
+    "currentStage": "no_eligible_market",
+    "stageStartedAt": "2026-09-06T13:43:57.600Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://rpc.ankr.com/somnia_testnet"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481290844",
+      "fromBlock": "481288845",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "metadataSource": "on-chain MarketCreated event",
+      "candidates": [
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001518a",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": -1,
+          "question": "Pricefeed test: will ETH/USDC's price be at or above 2493.42 at unix time 1788702240?",
+          "strike": "2493.42",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        }
+      ]
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13364676",
+        "txHash": "0x93b767a1d666180916ee85ec10f52ef64b2491388338be72f95df22912f3e445",
+        "valueWei": "120000000000000000",
+        "raw": "7982500000000",
+        "usd": 79825,
+        "receivedAt": "2026-09-06T13:41:48.521Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13364798",
+        "txHash": "0x506844b03632944e218b00778f5d41acc844b7c23016e2c09899400c63537715",
+        "valueWei": "120000000000000000",
+        "raw": "7980900000000",
+        "usd": 79809,
+        "receivedAt": "2026-09-06T13:43:54.968Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13364804",
+        "txHash": "0x1efeba05c03e423a6df6ac031dc0f0815dfa21c2a2342d1c9aa8802fa5df0a55",
+        "valueWei": "120000000000000000",
+        "raw": "249297000000",
+        "usd": 2492.97,
+        "receivedAt": "2026-09-06T13:43:57.598Z"
+      },
+      "changePct": -0.02004384591293454,
+      "trend": "DOWN"
+    },
+    "marketContext": null,
+    "llmDecision": {
+      "skipped": true,
+      "reason": "no eligible live BTC market among 5 on-chain MarketCreated candidates"
+    },
+    "riskGate": null,
+    "order": null,
+    "error": null,
+    "finishedAt": "2026-09-06T13:44:03.837Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "3c524a5b-9583-4701-93a9-1b73e05cd821",
+    "startedAt": "2026-09-06T13:36:05.983Z",
+    "currentStage": "error",
+    "stageStartedAt": "2026-09-06T13:38:32.599Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://rpc.ankr.com/somnia_testnet"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481287453",
+      "fromBlock": "481285454",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "metadataSource": "on-chain MarketCreated event",
+      "candidates": [
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001517e",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 38,
+          "question": "Pricefeed test: will ETH/USDC's price be at or above 2493.56 at unix time 1788701940?",
+          "strike": "2493.56",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001517d",
+          "asset": "BTC",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 37,
+          "question": "Pricefeed test: will BTC/USDC's price be at or above 79864.37 at unix time 1788701940?",
+          "strike": "79864.37",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        }
+      ],
+      "openingPriceError": "@somnia-chain/markets-sdk: indexer OpeningRefs failed: HTTP 403"
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13364339",
+        "txHash": "0x3f31b4837de5cbb1d18806fbdc00ed1f6d33324d8163da2d312d6761c3b4e5a3",
+        "valueWei": "120000000000000000",
+        "raw": "7978100000000",
+        "usd": 79781,
+        "receivedAt": "2026-09-06T13:36:11.688Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13364464",
+        "txHash": "0x94fc6bbbeb0c2d0d87acd3bcfa9c7ae38fd3cdd6c8f0b0900e73deb516066163",
+        "valueWei": "120000000000000000",
+        "raw": "7978300000000",
+        "usd": 79783,
+        "receivedAt": "2026-09-06T13:38:16.576Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13364468",
+        "txHash": "0xa8bb3c82efb0cc09db84941df099e73efd91440ee4a951c91c15a213c241ec0d",
+        "valueWei": "120000000000000000",
+        "raw": "249115000000",
+        "usd": 2491.15,
+        "receivedAt": "2026-09-06T13:38:19.852Z"
+      },
+      "changePct": 0.002506862536192828,
+      "trend": "UP"
+    },
+    "marketContext": {
+      "marketId": "0x000000000000000000000000000000000000000000000000000000000001517d",
+      "asset": "BTC",
+      "question": "Pricefeed test: will BTC/USDC's price be at or above 79864.37 at unix time 1788701940?",
+      "strike": 79864.37,
+      "strikeRaw": "7986437",
+      "openingPrice": null,
+      "openingPriceRaw": null,
+      "bestYesAsk": 0.081,
+      "bestNoAsk": 0.94,
+      "mid": 0.5105,
+      "tradingStart": 1788701880,
+      "expiry": 1788701940,
+      "secondsLeft": 36,
+      "timeLeft": 36,
+      "intervalSec": 60,
+      "status": 1,
+      "yesAsks": [
+        [
+          0.081,
+          200
+        ],
+        [
+          0.089,
+          330
+        ],
+        [
+          0.103,
+          460
+        ]
+      ],
+      "noAsks": [
+        [
+          0.94,
+          200
+        ],
+        [
+          0.947,
+          330
+        ],
+        [
+          0.949,
+          460
+        ]
+      ]
+    },
+    "llmDecision": {
+      "requestId": "13364479",
+      "txHash": "0x8efbbbd0f27f61aea167c532cca4961bef2728f4e06c8a074752b97bc9066aa6",
+      "valueWei": "240000000000000000",
+      "raw": "{\"decision\":\"UP\",\"reasoning\":\"The spot price is below the strike but trending upward, and there is enough time left for it to potentially cross the strike.\",\"confidence\":\"medium\"}",
+      "decision": "UP",
+      "reasoning": "The spot price is below the strike but trending upward, and there is enough time left for it to potentially cross the strike.",
+      "confidence": "medium",
+      "receivedAt": "2026-09-06T13:38:32.594Z",
+      "promptSent": "You are a conservative crypto signal agent for a binary event contract.\nYou must output ONLY valid JSON: {\"decision\":\"UP|DOWN|SKIP\",\"reasoning\":\"one sentence\",\"confidence\":\"low|medium|high\"}\n\n=== MARKET CONTEXT (the specific contract you would trade) ===\nAsset:              BTC\nMarket ID:          0x000000000000000000000000000000000000000000000000000000000001517d\nStrike (resolve against): $79864.37\nCurrent BTC/USD spot: 79783.00  (moved from 79781.00 in 120s, 0.0025%, trend UP)\nBest YES ask:       0.0810   (prob of YES ≈ 8.10%)\nBest NO ask:        0.9400   (prob of NO ≈ 94.00%)\nMid probability:    0.5105\nTime left until expiry: 36s\nCadence:            60s (1m)\nStatus:             Trading\n\n=== WHAT THE DECISION MEANS ===\n- UP = buy YES  (bet the event happens / price closes at-or-above strike)\n- DOWN = buy NO  (bet the event does not happen / price closes below strike)\n- SKIP = no trade this cycle\n\n=== REASONING GUIDANCE ===\nThink relative to THIS contract's strike, not generic momentum.\nAsk yourself:\n  1. Is the current spot price above or below the strike, and is it trending toward or away from it?\n  2. Does the current spot price, projected forward over the time left, plausibly cross the strike?\n  3. Does the order-book implied probability (YES ask / NO ask) agree or disagree with the spot trend?\n  4. Is there enough time left for the trend to resolve, or is expiry too close?\n  5. Is the evidence weak or conflicting — if so, SKIP.\n\nStrike relation (spot vs strike, trend direction): below_strike_rising\n\n{{\"decision\":\"UP|DOWN|SKIP\",\"reasoning\":\"...\",\"confidence\":\"low|medium|high\"}}"
+    },
+    "riskGate": {
+      "allowed": true,
+      "reason": "all deterministic checks passed",
+      "checkedAt": "2026-09-06T13:38:32.599Z",
+      "marketId": "0x000000000000000000000000000000000000000000000000000000000001517d",
+      "pool": "0x5397cd6DE6e87eB7f2D9B72191B5eFfb16E53D62",
+      "tradingStart": 1788701880,
+      "expiry": 1788701940,
+      "windowSeconds": 60,
+      "outcome": "YES",
+      "bestAsk": 0.081,
+      "limitPrice": 0.091,
+      "sizeShares": 54.945,
+      "maxCostTUSDC": 4.999995,
+      "secondsLeft": 36,
+      "liquidityShares": 530
+    },
+    "order": null,
+    "error": {
+      "at": "2026-09-06T13:38:39.370Z",
+      "message": "An unknown RPC error occurred.\n\nVersion: viem@2.54.1"
+    },
+    "finishedAt": "2026-09-06T13:38:39.370Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "0143e4ba-1ce7-48c6-bd0a-d4730b272b1a",
+    "startedAt": "2026-09-06T13:29:15.469Z",
+    "currentStage": "error",
+    "stageStartedAt": "2026-09-06T13:31:42.995Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://rpc.ankr.com/somnia_testnet"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481283352",
+      "fromBlock": "481281353",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "metadataSource": "on-chain MarketCreated event",
+      "candidates": [
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001516e",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 28,
+          "question": "Pricefeed test: will ETH/USDC's price be at or above 2491.75 at unix time 1788701520?",
+          "strike": "2491.75",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001516d",
+          "asset": "BTC",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 27,
+          "question": "Pricefeed test: will BTC/USDC's price be at or above 79812.25 at unix time 1788701520?",
+          "strike": "79812.25",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001516a",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 205,
+          "question": "Pricefeed test: will ETH/USDC's price be at or above 2492.05 at unix time 1788701700?",
+          "strike": "2492.05",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        }
+      ],
+      "openingPriceError": "@somnia-chain/markets-sdk: indexer OpeningRefs failed: HTTP 403"
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13363930",
+        "txHash": "0xf1237d8e09dc5910776ca552291c1c6b2a3cc093c626a5497942701d2e667b72",
+        "valueWei": "120000000000000000",
+        "raw": "7982200000000",
+        "usd": 79822,
+        "receivedAt": "2026-09-06T13:29:22.479Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13364056",
+        "txHash": "0x6573360dd9f39f10e0178160f45f13288e00040c485743895ea67dcc3805499b",
+        "valueWei": "120000000000000000",
+        "raw": "7979400000000",
+        "usd": 79794,
+        "receivedAt": "2026-09-06T13:31:26.684Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13364060",
+        "txHash": "0x54ace95c492175d100763da4523b7c310e2d4a9d9cc023076e9277ff44fcf35d",
+        "valueWei": "120000000000000000",
+        "raw": "249171000000",
+        "usd": 2491.71,
+        "receivedAt": "2026-09-06T13:31:29.879Z"
+      },
+      "changePct": -0.03507804865826464,
+      "trend": "DOWN"
+    },
+    "marketContext": {
+      "marketId": "0x000000000000000000000000000000000000000000000000000000000001516d",
+      "asset": "BTC",
+      "question": "Pricefeed test: will BTC/USDC's price be at or above 79812.25 at unix time 1788701520?",
+      "strike": 79812.25,
+      "strikeRaw": "7981225",
+      "openingPrice": null,
+      "openingPriceRaw": null,
+      "bestYesAsk": 0.313,
+      "bestNoAsk": 0.715,
+      "mid": 0.514,
+      "tradingStart": 1788701460,
+      "expiry": 1788701520,
+      "secondsLeft": 25,
+      "timeLeft": 25,
+      "intervalSec": 60,
+      "status": 1,
+      "yesAsks": [
+        [
+          0.313,
+          200
+        ],
+        [
+          0.323,
+          330
+        ],
+        [
+          0.34,
+          460
+        ]
+      ],
+      "noAsks": [
+        [
+          0.715,
+          200
+        ],
+        [
+          0.725,
+          330
+        ],
+        [
+          0.729,
+          460
+        ]
+      ]
+    },
+    "llmDecision": {
+      "requestId": "13364071",
+      "txHash": "0xd233bafe72b90c1973bd7162f7c9eb7806491e06950f8a1b6c1655f74433e71d",
+      "valueWei": "240000000000000000",
+      "raw": "{\"decision\":\"DOWN\",\"reasoning\":\"The current BTC price is below the strike and trending downward, with a high probability of NO according to the order book.\",\"confidence\":\"high\"}",
+      "decision": "DOWN",
+      "reasoning": "The current BTC price is below the strike and trending downward, with a high probability of NO according to the order book.",
+      "confidence": "high",
+      "receivedAt": "2026-09-06T13:31:42.994Z",
+      "promptSent": "You are a conservative crypto signal agent for a binary event contract.\nYou must output ONLY valid JSON: {\"decision\":\"UP|DOWN|SKIP\",\"reasoning\":\"one sentence\",\"confidence\":\"low|medium|high\"}\n\n=== MARKET CONTEXT (the specific contract you would trade) ===\nAsset:              BTC\nMarket ID:          0x000000000000000000000000000000000000000000000000000000000001516d\nStrike (resolve against): $79812.25\nCurrent BTC/USD spot: 79794.00  (moved from 79822.00 in 120s, -0.0351%, trend DOWN)\nBest YES ask:       0.3130   (prob of YES ≈ 31.30%)\nBest NO ask:        0.7150   (prob of NO ≈ 71.50%)\nMid probability:    0.5140\nTime left until expiry: 25s\nCadence:            60s (1m)\nStatus:             Trading\n\n=== WHAT THE DECISION MEANS ===\n- UP = buy YES  (bet the event happens / price closes at-or-above strike)\n- DOWN = buy NO  (bet the event does not happen / price closes below strike)\n- SKIP = no trade this cycle\n\n=== REASONING GUIDANCE ===\nThink relative to THIS contract's strike, not generic momentum.\nAsk yourself:\n  1. Is the current spot price above or below the strike, and is it trending toward or away from it?\n  2. Does the current spot price, projected forward over the time left, plausibly cross the strike?\n  3. Does the order-book implied probability (YES ask / NO ask) agree or disagree with the spot trend?\n  4. Is there enough time left for the trend to resolve, or is expiry too close?\n  5. Is the evidence weak or conflicting — if so, SKIP.\n\nStrike relation (spot vs strike, trend direction): below_strike_falling\n\n{{\"decision\":\"UP|DOWN|SKIP\",\"reasoning\":\"...\",\"confidence\":\"low|medium|high\"}}"
+    },
+    "riskGate": {
+      "allowed": true,
+      "reason": "all deterministic checks passed",
+      "checkedAt": "2026-09-06T13:31:42.995Z",
+      "marketId": "0x000000000000000000000000000000000000000000000000000000000001516d",
+      "pool": "0xad950391341499F1e5aB746E132dDDe22D56F162",
+      "tradingStart": 1788701460,
+      "expiry": 1788701520,
+      "windowSeconds": 60,
+      "outcome": "NO",
+      "bestAsk": 0.715,
+      "limitPrice": 0.725,
+      "sizeShares": 6.896,
+      "maxCostTUSDC": 4.9996,
+      "secondsLeft": 25,
+      "liquidityShares": 530
+    },
+    "order": null,
+    "error": {
+      "at": "2026-09-06T13:31:49.872Z",
+      "message": "An unknown RPC error occurred.\n\nVersion: viem@2.54.1"
+    },
+    "finishedAt": "2026-09-06T13:31:49.872Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "d9ec9c77-eadc-4a08-ac06-4a4ba50c3d94",
+    "startedAt": "2026-09-06T13:26:40.818Z",
+    "currentStage": "no_eligible_market",
+    "stageStartedAt": "2026-09-06T13:28:54.640Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://rpc.ankr.com/somnia_testnet"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481281816",
+      "fromBlock": "481279817",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "metadataSource": "on-chain MarketCreated event",
+      "candidates": [
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000015166",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 2,
+          "question": "Pricefeed test: will ETH/USDC's price be at or above 2492.52 at unix time 1788701340?",
+          "strike": "2492.52",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000015165",
+          "asset": "BTC",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 1,
+          "question": "Pricefeed test: will BTC/USDC's price be at or above 79825.29 at unix time 1788701340?",
+          "strike": "79825.29",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        }
+      ]
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13363775",
+        "txHash": "0xa83b3196162bec5a0a3dad171b273c1d3a4137311ac4a1b89bf735a244ac01ef",
+        "valueWei": "120000000000000000",
+        "raw": "7982300000000",
+        "usd": 79823,
+        "receivedAt": "2026-09-06T13:26:45.588Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13363898",
+        "txHash": "0x740b98511bb8546ce5ce9bf2de637b7c3606e2da4dfbe216ac5cf6c1e8d42482",
+        "valueWei": "120000000000000000",
+        "raw": "7982200000000",
+        "usd": 79822,
+        "receivedAt": "2026-09-06T13:28:51.599Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13363903",
+        "txHash": "0xc2e628925e4e920c4a4d202a4fa4fbd7849435daf06bb6a46bba5e4784ad0339",
+        "valueWei": "120000000000000000",
+        "raw": "249335000000",
+        "usd": 2493.35,
+        "receivedAt": "2026-09-06T13:28:54.640Z"
+      },
+      "changePct": -0.0012527717575134987,
+      "trend": "DOWN"
+    },
+    "marketContext": null,
+    "llmDecision": {
+      "skipped": true,
+      "reason": "no eligible live BTC market among 5 on-chain MarketCreated candidates"
+    },
+    "riskGate": null,
+    "order": null,
+    "error": null,
+    "finishedAt": "2026-09-06T13:29:00.765Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "a5a6b710-706e-4a49-9497-e58aa64e7317",
+    "startedAt": "2026-09-06T13:23:16.901Z",
+    "currentStage": "error",
+    "stageStartedAt": "2026-09-06T13:25:43.029Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://rpc.ankr.com/somnia_testnet"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481279757",
+      "fromBlock": "481277758",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "metadataSource": "on-chain MarketCreated event",
+      "candidates": [
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000015160",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 28,
+          "question": "Pricefeed test: will ETH/USDC's price be at or above 2492.84 at unix time 1788701160?",
+          "strike": "2492.84",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001515f",
+          "asset": "BTC",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 27,
+          "question": "Pricefeed test: will BTC/USDC's price be at or above 79833.38 at unix time 1788701160?",
+          "strike": "79833.38",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001515e",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 266,
+          "question": "Pricefeed test: will ETH/USDC's price be at or above 2492.84 at unix time 1788701400?",
+          "strike": "2492.84",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001515d",
+          "asset": "BTC",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 266,
+          "question": "Pricefeed test: will BTC/USDC's price be at or above 79833.38 at unix time 1788701400?",
+          "strike": "79833.38",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        }
+      ],
+      "openingPriceError": "@somnia-chain/markets-sdk: indexer OpeningRefs failed: HTTP 403"
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13363565",
+        "txHash": "0x65007640b7616e5883e1189cee809114a3b588da4f16f025c859a1fda7563a0b",
+        "valueWei": "120000000000000000",
+        "raw": "7982100000000",
+        "usd": 79821,
+        "receivedAt": "2026-09-06T13:23:22.608Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13363687",
+        "txHash": "0x93e29d84e46367849ff736bb9cddc4a0805465afabd686c980849677e27749a8",
+        "valueWei": "120000000000000000",
+        "raw": "7983300000000",
+        "usd": 79833,
+        "receivedAt": "2026-09-06T13:25:26.895Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13363692",
+        "txHash": "0xcf1ebca0221d2ba8838d0e51895e566d1e85dbd9e6d5f54711971dc9599b4a11",
+        "valueWei": "120000000000000000",
+        "raw": "249381000000",
+        "usd": 2493.81,
+        "receivedAt": "2026-09-06T13:25:30.114Z"
+      },
+      "changePct": 0.015033637764498065,
+      "trend": "UP"
+    },
+    "marketContext": {
+      "marketId": "0x000000000000000000000000000000000000000000000000000000000001515f",
+      "asset": "BTC",
+      "question": "Pricefeed test: will BTC/USDC's price be at or above 79833.38 at unix time 1788701160?",
+      "strike": 79833.38,
+      "strikeRaw": "7983338",
+      "openingPrice": null,
+      "openingPriceRaw": null,
+      "bestYesAsk": 0.357,
+      "bestNoAsk": 0.671,
+      "mid": 0.514,
+      "tradingStart": 1788701100,
+      "expiry": 1788701160,
+      "secondsLeft": 25,
+      "timeLeft": 25,
+      "intervalSec": 60,
+      "status": 1,
+      "yesAsks": [
+        [
+          0.357,
+          200
+        ],
+        [
+          0.373,
+          330
+        ],
+        [
+          0.383,
+          460
+        ]
+      ],
+      "noAsks": [
+        [
+          0.671,
+          200
+        ],
+        [
+          0.676,
+          330
+        ],
+        [
+          0.687,
+          460
+        ]
+      ]
+    },
+    "llmDecision": {
+      "requestId": "13363703",
+      "txHash": "0x42b411b509af72225a94697de1b0a072c0dcc70583d23619e59ec89debe4e655",
+      "valueWei": "240000000000000000",
+      "raw": "{\n  \"decision\": \"UP\",\n  \"reasoning\": \"The spot price is below the strike but trending upward, and there is enough time left for it to potentially cross the strike.\",\n  \"confidence\": \"medium\"\n}",
+      "decision": "UP",
+      "reasoning": "The spot price is below the strike but trending upward, and there is enough time left for it to potentially cross the strike.",
+      "confidence": "medium",
+      "receivedAt": "2026-09-06T13:25:43.028Z",
+      "promptSent": "You are a conservative crypto signal agent for a binary event contract.\nYou must output ONLY valid JSON: {\"decision\":\"UP|DOWN|SKIP\",\"reasoning\":\"one sentence\",\"confidence\":\"low|medium|high\"}\n\n=== MARKET CONTEXT (the specific contract you would trade) ===\nAsset:              BTC\nMarket ID:          0x000000000000000000000000000000000000000000000000000000000001515f\nStrike (resolve against): $79833.38\nCurrent BTC/USD spot: 79833.00  (moved from 79821.00 in 120s, 0.0150%, trend UP)\nBest YES ask:       0.3570   (prob of YES ≈ 35.70%)\nBest NO ask:        0.6710   (prob of NO ≈ 67.10%)\nMid probability:    0.5140\nTime left until expiry: 25s\nCadence:            60s (1m)\nStatus:             Trading\n\n=== WHAT THE DECISION MEANS ===\n- UP = buy YES  (bet the event happens / price closes at-or-above strike)\n- DOWN = buy NO  (bet the event does not happen / price closes below strike)\n- SKIP = no trade this cycle\n\n=== REASONING GUIDANCE ===\nThink relative to THIS contract's strike, not generic momentum.\nAsk yourself:\n  1. Is the current spot price above or below the strike, and is it trending toward or away from it?\n  2. Does the current spot price, projected forward over the time left, plausibly cross the strike?\n  3. Does the order-book implied probability (YES ask / NO ask) agree or disagree with the spot trend?\n  4. Is there enough time left for the trend to resolve, or is expiry too close?\n  5. Is the evidence weak or conflicting — if so, SKIP.\n\nStrike relation (spot vs strike, trend direction): below_strike_rising\n\n{{\"decision\":\"UP|DOWN|SKIP\",\"reasoning\":\"...\",\"confidence\":\"low|medium|high\"}}"
+    },
+    "riskGate": {
+      "allowed": true,
+      "reason": "all deterministic checks passed",
+      "checkedAt": "2026-09-06T13:25:43.029Z",
+      "marketId": "0x000000000000000000000000000000000000000000000000000000000001515f",
+      "pool": "0xB37270434039eFaFEb8e61959C40294E1c871d33",
+      "tradingStart": 1788701100,
+      "expiry": 1788701160,
+      "windowSeconds": 60,
+      "outcome": "YES",
+      "bestAsk": 0.357,
+      "limitPrice": 0.367,
+      "sizeShares": 13.623000000000001,
+      "maxCostTUSDC": 4.9996410000000004,
+      "secondsLeft": 25,
+      "liquidityShares": 200
+    },
+    "order": null,
+    "error": {
+      "at": "2026-09-06T13:25:50.785Z",
+      "message": "An unknown RPC error occurred.\n\nVersion: viem@2.54.1"
+    },
+    "finishedAt": "2026-09-06T13:25:50.785Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "b2436f04-b1c2-4899-9a50-584ae57762da",
+    "startedAt": "2026-09-06T13:12:23.836Z",
+    "currentStage": "complete",
+    "stageStartedAt": "2026-09-06T13:14:47.967Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://rpc.ankr.com/somnia_testnet"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481273235",
+      "fromBlock": "481271236",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "metadataSource": "on-chain MarketCreated event",
+      "candidates": [
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000015144",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 21,
+          "question": "Pricefeed test: will ETH/USDC's price be at or above 2497.79 at unix time 1788700500?",
+          "strike": "2497.79",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000015143",
+          "asset": "BTC",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 20,
+          "question": "Pricefeed test: will BTC/USDC's price be at or above 79902.30 at unix time 1788700500?",
+          "strike": "79902.3",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        }
+      ],
+      "openingPriceError": "@somnia-chain/markets-sdk: indexer OpeningRefs failed: HTTP 403"
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13362924",
+        "txHash": "0xbbdc1318fb39a36d0cf738df996f44c097992e57001a7bced6bf7b81f2737509",
+        "valueWei": "120000000000000000",
+        "raw": "7991700000000",
+        "usd": 79917,
+        "receivedAt": "2026-09-06T13:12:29.689Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13363046",
+        "txHash": "0x1d367917e4fb462965beacc4bfbfd67d18ee8fd8d1ebb1cd7eb7dd6e328a5922",
+        "valueWei": "120000000000000000",
+        "raw": "7990500000000",
+        "usd": 79905,
+        "receivedAt": "2026-09-06T13:14:33.892Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13363050",
+        "txHash": "0xacb5149c78f7dd49a48f84290626b8fe876805677c3179aac4a6925e0cce2a44",
+        "valueWei": "120000000000000000",
+        "raw": "249815000000",
+        "usd": 2498.15,
+        "receivedAt": "2026-09-06T13:14:36.362Z"
+      },
+      "changePct": -0.01501557866286272,
+      "trend": "DOWN"
+    },
+    "marketContext": {
+      "marketId": "0x0000000000000000000000000000000000000000000000000000000000015143",
+      "asset": "BTC",
+      "question": "Pricefeed test: will BTC/USDC's price be at or above 79902.30 at unix time 1788700500?",
+      "strike": 79902.3,
+      "strikeRaw": "7990230",
+      "openingPrice": null,
+      "openingPriceRaw": null,
+      "bestYesAsk": 0.515,
+      "bestNoAsk": 0.515,
+      "mid": 0.515,
+      "expiry": 1788700500,
+      "secondsLeft": 18,
+      "timeLeft": 18,
+      "intervalSec": 60,
+      "status": 1,
+      "yesAsks": [
+        [
+          0.515,
+          200
+        ],
+        [
+          0.525,
+          330
+        ],
+        [
+          0.536,
+          460
+        ]
+      ],
+      "noAsks": [
+        [
+          0.515,
+          200
+        ],
+        [
+          0.526,
+          330
+        ],
+        [
+          0.536,
+          460
+        ]
+      ]
+    },
+    "llmDecision": {
+      "requestId": "13363061",
+      "txHash": "0xc5a9b120575e95e14b3e7663900f4f0083ac8293c4db8d1bdc7a2f69ee2e5cac",
+      "valueWei": "240000000000000000",
+      "raw": "{\"decision\":\"SKIP\",\"reasoning\":\"The spot price is slightly above the strike but trending downward, and the order-book probabilities are balanced, making the outcome uncertain with little time left.\",\"confidence\":\"low\"}",
+      "decision": "SKIP",
+      "reasoning": "The spot price is slightly above the strike but trending downward, and the order-book probabilities are balanced, making the outcome uncertain with little time left.",
+      "confidence": "low",
+      "receivedAt": "2026-09-06T13:14:47.966Z",
+      "promptSent": "You are a conservative crypto signal agent for a binary event contract.\nYou must output ONLY valid JSON: {\"decision\":\"UP|DOWN|SKIP\",\"reasoning\":\"one sentence\",\"confidence\":\"low|medium|high\"}\n\n=== MARKET CONTEXT (the specific contract you would trade) ===\nAsset:              BTC\nMarket ID:          0x0000000000000000000000000000000000000000000000000000000000015143\nStrike (resolve against): $79902.30\nCurrent BTC/USD spot: 79905.00  (moved from 79917.00 in 120s, -0.0150%, trend DOWN)\nBest YES ask:       0.5150   (prob of YES ≈ 51.50%)\nBest NO ask:        0.5150   (prob of NO ≈ 51.50%)\nMid probability:    0.5150\nTime left until expiry: 18s\nCadence:            60s (1m)\nStatus:             Trading\n\n=== WHAT THE DECISION MEANS ===\n- UP = buy YES  (bet the event happens / price closes at-or-above strike)\n- DOWN = buy NO  (bet the event does not happen / price closes below strike)\n- SKIP = no trade this cycle\n\n=== REASONING GUIDANCE ===\nThink relative to THIS contract's strike and opening price, not generic momentum.\nAsk yourself:\n  1. Is the current spot price above or below the strike, and is it trending toward or away from it?\n  2. Does the current spot price, projected forward over the time left, plausibly cross the strike?\n  3. Does the order-book implied probability (YES ask / NO ask) agree or disagree with the spot trend?\n  4. Is there enough time left for the trend toResolve, or is expiry too close?\n  5. Is the evidence weak or conflicting — if so, SKIP.\n\nStrike relation (spot vs strike, trend direction): above_strike_falling\n\n{{\"decision\":\"UP|DOWN|SKIP\",\"reasoning\":\"...\",\"confidence\":\"low|medium|high\"}}"
+    },
+    "riskGate": {
+      "allowed": false,
+      "reason": "LLM selected SKIP",
+      "checkedAt": "2026-09-06T13:14:47.968Z",
+      "marketId": "0x0000000000000000000000000000000000000000000000000000000000015143",
+      "pool": "0x75bdb1582aC9FCaf7C2A53D707d36f5a78E903Cc",
+      "tradingStart": 0,
+      "expiry": 1788700500,
+      "windowSeconds": 0,
+      "outcome": "NO",
+      "bestAsk": 0.515,
+      "limitPrice": 0.525,
+      "sizeShares": 9.523,
+      "maxCostTUSDC": 4.999575,
+      "secondsLeft": 18,
+      "liquidityShares": 200
+    },
+    "order": {
+      "status": "skipped",
+      "reason": "LLM selected SKIP"
+    },
+    "error": null,
+    "finishedAt": "2026-09-06T13:14:47.968Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "003232c1-9f0e-4784-be72-f33efb79af3f",
+    "startedAt": "2026-09-06T13:09:35.507Z",
+    "currentStage": "no_eligible_market",
+    "stageStartedAt": "2026-09-06T13:11:47.289Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://rpc.ankr.com/somnia_testnet"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481271509",
+      "fromBlock": "481269510",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "metadataSource": "on-chain MarketCreated event",
+      "candidates": [
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001513e",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 10,
+          "question": "Pricefeed test: will ETH/USDC's price be at or above 2498.88 at unix time 1788700320?",
+          "strike": "2498.88",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001513d",
+          "asset": "BTC",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 9,
+          "question": "Pricefeed test: will BTC/USDC's price be at or above 79927.55 at unix time 1788700320?",
+          "strike": "79927.55",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001513a",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 188,
+          "question": "Pricefeed test: will ETH/USDC's price be at or above 2499.59 at unix time 1788700500?",
+          "strike": "2499.59",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        }
+      ]
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13362756",
+        "txHash": "0x7a973f46e988eb65e6d33b6ef6a5e43884867a844119fa4bdb575c525784e71a",
+        "valueWei": "120000000000000000",
+        "raw": "7993100000000",
+        "usd": 79931,
+        "receivedAt": "2026-09-06T13:09:40.994Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13362879",
+        "txHash": "0x64e61b96fa37742b41baf2c774089f72de75669c7fa60cc55e35cb7c8eea9691",
+        "valueWei": "120000000000000000",
+        "raw": "7993600000000",
+        "usd": 79936,
+        "receivedAt": "2026-09-06T13:11:45.112Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13362882",
+        "txHash": "0x89b3fc76aebae81f1140667c8f4824d5c979c6b7030163092171d84e76874d87",
+        "valueWei": "120000000000000000",
+        "raw": "249923000000",
+        "usd": 2499.23,
+        "receivedAt": "2026-09-06T13:11:47.289Z"
+      },
+      "changePct": 0.006255395278427644,
+      "trend": "UP"
+    },
+    "marketContext": null,
+    "llmDecision": {
+      "skipped": true,
+      "reason": "no eligible live BTC market among 5 on-chain MarketCreated candidates"
+    },
+    "riskGate": null,
+    "order": null,
+    "error": null,
+    "finishedAt": "2026-09-06T13:11:52.901Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "c3f02c46-665e-4eb8-94a2-018f9301100f",
+    "startedAt": "2026-09-06T12:59:28.910Z",
+    "currentStage": "no_eligible_market",
+    "stageStartedAt": "2026-09-06T13:01:44.119Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://rpc.ankr.com/somnia_testnet"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481265496",
+      "fromBlock": "481263497",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "indexerAttemptsConfigured": 5,
+      "totalIndexerAttempts": 25,
+      "totalIndexer403s": 25,
+      "candidates": [
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000015123",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerAttempts": 5,
+          "indexer403s": 5,
+          "indexerError": "@somnia-chain/markets-sdk: indexer MarketByPk failed: HTTP 403"
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000015122",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerAttempts": 5,
+          "indexer403s": 5,
+          "indexerError": "@somnia-chain/markets-sdk: indexer MarketByPk failed: HTTP 403"
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000015121",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerAttempts": 5,
+          "indexer403s": 5,
+          "indexerError": "@somnia-chain/markets-sdk: indexer MarketByPk failed: HTTP 403"
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000015120",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerAttempts": 5,
+          "indexer403s": 5,
+          "indexerError": "@somnia-chain/markets-sdk: indexer MarketByPk failed: HTTP 403"
+        },
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001511f",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerAttempts": 5,
+          "indexer403s": 5,
+          "indexerError": "@somnia-chain/markets-sdk: indexer MarketByPk failed: HTTP 403"
+        }
+      ]
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13362107",
+        "txHash": "0x7e5a9b632632ec762db67fcd2875cae0fa7e1db494b811223ed72dc243e5053a",
+        "valueWei": "120000000000000000",
+        "raw": "7993900000000",
+        "usd": 79939,
+        "receivedAt": "2026-09-06T12:59:34.950Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13362251",
+        "txHash": "0x2e4cbbfcd9447dbf680014a3be1995895e145bad9d3bd8218870df158b06101a",
+        "valueWei": "120000000000000000",
+        "raw": "7991900000000",
+        "usd": 79919,
+        "receivedAt": "2026-09-06T13:01:40.528Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13362255",
+        "txHash": "0x465c94a3b0d7564b38c4952fb0b60732c300d3cdb4428091c24295375222f227",
+        "valueWei": "120000000000000000",
+        "raw": "250033000000",
+        "usd": 2500.33,
+        "receivedAt": "2026-09-06T13:01:44.119Z"
+      },
+      "changePct": -0.025019077046247763,
+      "trend": "DOWN"
+    },
+    "marketContext": null,
+    "llmDecision": {
+      "skipped": true,
+      "reason": "no eligible BTC market among 5 scanned candidates; getMarket attempts=25, 403 responses=25"
+    },
+    "riskGate": null,
+    "order": null,
+    "error": null,
+    "finishedAt": "2026-09-06T13:03:22.393Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "145cee3a-1622-430c-bea6-311f74240c4b",
+    "startedAt": "2026-09-06T12:45:05.257Z",
+    "currentStage": "no_eligible_market",
+    "stageStartedAt": "2026-09-06T12:47:18.327Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://rpc.ankr.com/somnia_testnet"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481256844",
+      "fromBlock": "481254845",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "indexerAttemptsConfigured": 5,
+      "totalIndexerAttempts": 0,
+      "totalIndexer403s": 0,
+      "candidates": [
+        {
+          "marketId": "0x00000000000000000000000000000000000000000000000000000000000150fc",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerAttempts": 0,
+          "indexer403s": 0,
+          "indexerError": "on-chain read: @somnia-chain/markets-sdk: rpc readContract markets failed: An unknown RPC error occurred."
+        },
+        {
+          "marketId": "0x00000000000000000000000000000000000000000000000000000000000150fb",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerAttempts": 0,
+          "indexer403s": 0,
+          "indexerError": "on-chain read: @somnia-chain/markets-sdk: rpc readContract markets failed: An unknown RPC error occurred."
+        },
+        {
+          "marketId": "0x00000000000000000000000000000000000000000000000000000000000150fa",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerAttempts": 0,
+          "indexer403s": 0,
+          "indexerError": "on-chain read: @somnia-chain/markets-sdk: rpc readContract markets failed: An unknown RPC error occurred."
+        },
+        {
+          "marketId": "0x00000000000000000000000000000000000000000000000000000000000150f9",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerAttempts": 0,
+          "indexer403s": 0,
+          "indexerError": "on-chain read: @somnia-chain/markets-sdk: rpc readContract markets failed: An unknown RPC error occurred."
+        },
+        {
+          "marketId": "0x00000000000000000000000000000000000000000000000000000000000150f8",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerAttempts": 0,
+          "indexer403s": 0,
+          "indexerError": "on-chain read: @somnia-chain/markets-sdk: rpc readContract markets failed: An unknown RPC error occurred."
+        }
+      ]
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13361234",
+        "txHash": "0x15e26af78a43aec0f4e6268c97bba1a56227a79f4c25209b18793b7ea796c17b",
+        "valueWei": "120000000000000000",
+        "raw": "7995600000000",
+        "usd": 79956,
+        "receivedAt": "2026-09-06T12:45:10.784Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13361369",
+        "txHash": "0xb437cf8a1fcb1b8fdc16ce14f589fde6cb701b6441d6bd7e1ce05663538d52a4",
+        "valueWei": "120000000000000000",
+        "raw": "7993800000000",
+        "usd": 79938,
+        "receivedAt": "2026-09-06T12:47:15.150Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13361374",
+        "txHash": "0x4780f80f755e3e39dc60c9590e919fcc77e30bb40225ae5814e1caa46ff0de2b",
+        "valueWei": "120000000000000000",
+        "raw": "250046000000",
+        "usd": 2500.46,
+        "receivedAt": "2026-09-06T12:47:18.326Z"
+      },
+      "changePct": -0.022512381809995496,
+      "trend": "DOWN"
+    },
+    "marketContext": null,
+    "llmDecision": {
+      "skipped": true,
+      "reason": "no eligible BTC market among 5 scanned candidates; getMarket attempts=0, 403 responses=0"
+    },
+    "riskGate": null,
+    "order": null,
+    "error": null,
+    "finishedAt": "2026-09-06T12:47:52.635Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "5e162891-08d1-4b43-9745-292f5efc380f",
+    "startedAt": "2026-09-06T12:37:36.962Z",
+    "currentStage": "error",
+    "stageStartedAt": "2026-09-06T12:37:36.963Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://dream-rpc.somnia.network"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": null,
+    "priceSignal": null,
+    "marketContext": null,
+    "llmDecision": null,
+    "riskGate": null,
+    "order": null,
+    "error": {
+      "at": "2026-09-06T12:37:43.544Z",
+      "message": "HTTP request failed.\n\nStatus: 403\nURL: https://dream-rpc.somnia.network/\nRequest body: {\"method\":\"eth_call\",\"params\":[{\"data\":\"0x1ffd62fa\",\"to\":\"0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776\"},\"latest\"]}\n \nRaw Call Arguments:\n  to:    0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776\n  data:  0x1ffd62fa\n \nContract Call:\n  address:   0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776\n  function:  getRequestDeposit()\n\nDocs: https://viem.sh/docs/contract/readContract\nDetails: \"\\n<html><head>\\n<meta http-equiv=\\\"content-type\\\" content=\\\"text/html;charset=utf-8\\\">\\n<title>403 Forbidden</title>\\n</head>\\n<body text=#000000 bgcolor=#ffffff>\\n<h1>Error: Forbidden</h1>\\n<h2>Your client does not have permission to get URL <code>/</code> from this server.</h2>\\n<h2></h2>\\n</body></html>\\n\"\nVersion: viem@2.54.1"
+    },
+    "finishedAt": "2026-09-06T12:37:43.544Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "3f4370d4-c437-4cf5-b12b-6f45213475c9",
+    "startedAt": "2026-09-06T12:36:46.053Z",
+    "currentStage": "error",
+    "stageStartedAt": "2026-09-06T12:36:46.054Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://dream-rpc.somnia.network"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": null,
+    "priceSignal": null,
+    "marketContext": null,
+    "llmDecision": null,
+    "riskGate": null,
+    "order": null,
+    "error": {
+      "at": "2026-09-06T12:36:53.703Z",
+      "message": "HTTP request failed.\n\nStatus: 403\nURL: https://dream-rpc.somnia.network/\nRequest body: {\"method\":\"eth_call\",\"params\":[{\"data\":\"0x1ffd62fa\",\"to\":\"0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776\"},\"latest\"]}\n \nRaw Call Arguments:\n  to:    0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776\n  data:  0x1ffd62fa\n \nContract Call:\n  address:   0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776\n  function:  getRequestDeposit()\n\nDocs: https://viem.sh/docs/contract/readContract\nDetails: \"\\n<html><head>\\n<meta http-equiv=\\\"content-type\\\" content=\\\"text/html;charset=utf-8\\\">\\n<title>403 Forbidden</title>\\n</head>\\n<body text=#000000 bgcolor=#ffffff>\\n<h1>Error: Forbidden</h1>\\n<h2>Your client does not have permission to get URL <code>/</code> from this server.</h2>\\n<h2></h2>\\n</body></html>\\n\"\nVersion: viem@2.54.1"
+    },
+    "finishedAt": "2026-09-06T12:36:53.703Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "04dd303a-a12a-4a72-accf-a4fb3fbce7ec",
+    "startedAt": "2026-09-06T08:05:28.299Z",
+    "currentStage": "complete",
+    "stageStartedAt": "2026-09-06T08:07:45.803Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://dream-rpc.somnia.network"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481089177",
+      "fromBlock": "481087178",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "candidates": [
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014e3b",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerError": ""
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014e3a",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerError": ""
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014e39",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerError": ""
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014e38",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerError": ""
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014e37",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerError": ""
+        }
+      ]
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13344343",
+        "txHash": "0xbeb1f76199b7fda7e226cec076771caf497dc2ad81c6b18bba8c5b6e1e28818c",
+        "valueWei": "120000000000000000",
+        "raw": "7981100000000",
+        "usd": 79811,
+        "receivedAt": "2026-09-06T08:05:35.217Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13344520",
+        "txHash": "0x10ed183acb38ca1263cad84271a01de5c9028954339bfb10894ca19805d16e50",
+        "valueWei": "120000000000000000",
+        "raw": "7984300000000",
+        "usd": 79843,
+        "receivedAt": "2026-09-06T08:07:40.395Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13344524",
+        "txHash": "0x54f6970e1cb32144a5361812154cdb53fb3543b2a83506d370c840be4d61d9d4",
+        "valueWei": "120000000000000000",
+        "raw": "249686000000",
+        "usd": 2496.86,
+        "receivedAt": "2026-09-06T08:07:45.802Z"
+      },
+      "changePct": 0.04009472378494193,
+      "trend": "UP"
+    },
+    "marketContext": null,
+    "llmDecision": {
+      "skipped": true,
+      "reason": "no eligible BTC market among 5 newest candidates (scanAttempts=1)"
+    },
+    "riskGate": null,
+    "order": null,
+    "error": null,
+    "finishedAt": "2026-09-06T08:07:54.131Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "196ae6ed-70d9-4614-8bc9-bbd1edbc625b",
+    "startedAt": "2026-09-06T08:03:39.005Z",
+    "currentStage": "complete",
+    "stageStartedAt": "2026-09-06T08:05:55.226Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://dream-rpc.somnia.network"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481088055",
+      "fromBlock": "481086056",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "candidates": [
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014e37",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerError": ""
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014e36",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerError": ""
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014e35",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerError": ""
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014e34",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerError": ""
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014e33",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerError": ""
+        }
+      ]
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13344213",
+        "txHash": "0x6419c48e5ac19461f70cfcad20fc4a72ef8fcf6fe2c5051ded43d6d5e495cfac",
+        "valueWei": "120000000000000000",
+        "raw": "7980700000000",
+        "usd": 79807,
+        "receivedAt": "2026-09-06T08:03:45.815Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13344373",
+        "txHash": "0xc640e78945fa3c48b5ba0346d57e03fe0d40c22beb03a73e9060a6a431009535",
+        "valueWei": "120000000000000000",
+        "raw": "7981100000000",
+        "usd": 79811,
+        "receivedAt": "2026-09-06T08:05:51.356Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13344380",
+        "txHash": "0xdfa43707dcf317a502e59880ab7f0e46ac8a57b9782457d9de1b95f63c3ddb83",
+        "valueWei": "120000000000000000",
+        "raw": "249526000000",
+        "usd": 2495.26,
+        "receivedAt": "2026-09-06T08:05:55.226Z"
+      },
+      "changePct": 0.005012091671156666,
+      "trend": "UP"
+    },
+    "marketContext": null,
+    "llmDecision": {
+      "skipped": true,
+      "reason": "no eligible BTC market among 5 newest candidates (scanAttempts=1)"
+    },
+    "riskGate": null,
+    "order": null,
+    "error": null,
+    "finishedAt": "2026-09-06T08:06:13.358Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "9a2466e3-7812-4df6-93c1-4868397429d1",
+    "startedAt": "2026-09-06T07:54:19.438Z",
+    "currentStage": "complete",
+    "stageStartedAt": "2026-09-06T07:56:36.108Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://dream-rpc.somnia.network"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481082464",
+      "fromBlock": "481080465",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "candidates": [
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014e1d",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerError": "@somnia-chain/markets-sdk: indexer MarketByPk failed: The operation was aborted due to timeout"
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014e1c",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerError": ""
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014e1b",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerError": "@somnia-chain/markets-sdk: indexer MarketByPk failed: The operation was aborted due to timeout"
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014e1a",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerError": "@somnia-chain/markets-sdk: indexer MarketByPk failed: The operation was aborted due to timeout"
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014e19",
+          "asset": null,
+          "status": -1,
+          "isTradable": false,
+          "secondsLeft": -1,
+          "indexerError": ""
+        }
+      ]
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13343633",
+        "txHash": "0x0d95817c3382d1bc8232f2cda754b209d5c4b09ba6170a7450fb8f5ac28a9472",
+        "valueWei": "120000000000000000",
+        "raw": "7981600000000",
+        "usd": 79816,
+        "receivedAt": "2026-09-06T07:54:26.359Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13343759",
+        "txHash": "0x31020d19f5350fa539cef0b4ac7220da0178852168988166edf81f6a162c2c94",
+        "valueWei": "120000000000000000",
+        "raw": "7981400000000",
+        "usd": 79814,
+        "receivedAt": "2026-09-06T07:56:32.139Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13343764",
+        "txHash": "0xf025a5b0eca55f69ea1b395430d50d658da230551dc91cc752b37d11e8a721be",
+        "valueWei": "120000000000000000",
+        "raw": "249582000000",
+        "usd": 2495.82,
+        "receivedAt": "2026-09-06T07:56:36.108Z"
+      },
+      "changePct": -0.0025057632554876218,
+      "trend": "DOWN"
+    },
+    "marketContext": null,
+    "llmDecision": {
+      "skipped": true,
+      "reason": "no eligible BTC market among 5 newest candidates (scanAttempts=1)"
+    },
+    "riskGate": null,
+    "order": null,
+    "error": null,
+    "finishedAt": "2026-09-06T08:00:46.804Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "e30c88d3-9903-43a1-8389-bcbd65ec2e9e",
+    "startedAt": "2026-09-06T07:16:45.978Z",
+    "currentStage": "complete",
+    "stageStartedAt": "2026-09-06T07:19:01.735Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://dream-rpc.somnia.network"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481059943",
+      "fromBlock": "481057944",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "candidates": [
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014dc3",
+          "asset": null,
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 27
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014dc2",
+          "asset": null,
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": -3
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014dc1",
+          "asset": null,
+          "status": 4,
+          "isTradable": false,
+          "secondsLeft": -93
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014dc0",
+          "asset": null,
+          "status": 4,
+          "isTradable": false,
+          "secondsLeft": -123
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014dbf",
+          "asset": null,
+          "status": 4,
+          "isTradable": false,
+          "secondsLeft": -213
+        }
+      ]
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13341420",
+        "txHash": "0x52258c5dca2e2657a77dac74ec9071a764c8263d89306e7e2314f122ff05c46a",
+        "valueWei": "120000000000000000",
+        "raw": "7963000000000",
+        "usd": 79630,
+        "receivedAt": "2026-09-06T07:16:52.095Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13341541",
+        "txHash": "0x1e16da7c0b7b571785ffa13baf0fe47ba9e89c214e62bd4dad2db327fa036b4d",
+        "valueWei": "120000000000000000",
+        "raw": "7973800000000",
+        "usd": 79738,
+        "receivedAt": "2026-09-06T07:18:58.971Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13341547",
+        "txHash": "0x162b2ad8fbe455f885018178a024d91f03ceefc0f4ed0bca2ec9f4d361f48735",
+        "valueWei": "120000000000000000",
+        "raw": "249531000000",
+        "usd": 2495.31,
+        "receivedAt": "2026-09-06T07:19:01.735Z"
+      },
+      "changePct": 0.13562727615220393,
+      "trend": "UP"
+    },
+    "marketContext": null,
+    "llmDecision": {
+      "skipped": true,
+      "reason": "no eligible BTC market among 5 newest candidates (scanAttempts=1)"
+    },
+    "riskGate": null,
+    "order": null,
+    "error": null,
+    "finishedAt": "2026-09-06T07:21:33.644Z"
+  },
+  {
+    "schemaVersion": 2,
+    "cycleId": "1a4a87ee-d021-4a18-8251-aeec1fe14f1c",
+    "startedAt": "2026-09-06T07:04:33.590Z",
+    "currentStage": "error",
+    "stageStartedAt": "2026-09-06T07:07:33.741Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://dream-rpc.somnia.network"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481052871",
+      "fromBlock": "481050872",
+      "scanBlocks": "2000",
+      "scanChunks": 2,
+      "scanAttempts": 1,
+      "maxCandidates": 5,
+      "candidates": [
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014da7",
+          "asset": null,
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 31
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014da6",
+          "asset": "BTC",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 30
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014da5",
+          "asset": "ETH",
+          "status": 4,
+          "isTradable": false,
+          "secondsLeft": -31
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014da4",
+          "asset": "BTC",
+          "status": 4,
+          "isTradable": false,
+          "secondsLeft": -32
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000014da3",
+          "asset": "ETH",
+          "status": 4,
+          "isTradable": false,
+          "secondsLeft": -93
+        }
+      ]
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13340719",
+        "txHash": "0x93a8e4695e553b9ebfc216a061df389b1a9fb51c012f6113f952f4ddcfdaf3d1",
+        "valueWei": "120000000000000000",
+        "raw": "7978400000000",
+        "usd": 79784,
+        "receivedAt": "2026-09-06T07:05:06.386Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13340851",
+        "txHash": "0x5c684f7bd381d71df701dc7f8b97cff57b3b1d71fdbc7097b4837a45c9178973",
+        "valueWei": "120000000000000000",
+        "raw": "7978600000000",
+        "usd": 79786,
+        "receivedAt": "2026-09-06T07:07:10.998Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13340855",
+        "txHash": "0x8d0c516e89132c9300333dbfebfcb49e3f2c5c57367d7e98f372bd5774b0b981",
+        "valueWei": "120000000000000000",
+        "raw": "250638000000",
+        "usd": 2506.38,
+        "receivedAt": "2026-09-06T07:07:15.038Z"
+      },
+      "changePct": 0.0025067682743407198,
+      "trend": "UP"
+    },
+    "marketContext": null,
+    "llmDecision": null,
+    "riskGate": null,
+    "order": null,
+    "error": {
+      "at": "2026-09-06T07:07:35.704Z",
+      "message": "object is not iterable (cannot read property Symbol(Symbol.iterator))"
+    },
+    "finishedAt": "2026-09-06T07:07:35.704Z"
+  }
+]
