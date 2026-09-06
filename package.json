@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "frontend"
+  ],
   "scripts": {
     "cycle": "tsx bot/run-cycle.ts",
     "typecheck": "tsc -p bot/tsconfig.json",
-    "build": "npm run typecheck && npm --prefix frontend run build"
+    "build": "npm run typecheck && npm run build --workspace oracle-arena-dashboard",
+    "build:frontend": "npm run build --workspace oracle-arena-dashboard"
   },
   "dependencies": {
     "@somnia-chain/markets-sdk": "^0.28.1",
