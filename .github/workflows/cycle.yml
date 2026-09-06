@@ -15,22 +15,56 @@ permissions:
 jobs:
   cycle:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
+
       - run: npm ci
+
+      - name: Validate cycle configuration
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        run: |
+          if [[ -z "$PRIVATE_KEY" ]]; then
+            echo "::error::Repository secret PRIVATE_KEY is not configured"
+            exit 1
+          fi
+          if [[ ! "$PRIVATE_KEY" =~ ^0x[0-9a-fA-F]{64}$ ]]; then
+            echo "::error::Repository secret PRIVATE_KEY must be a 0x-prefixed 32-byte hex key"
+            exit 1
+          fi
+
       - name: Run cycle
-        run: npm run cycle
+        run: |
+          for attempt in 1 2 3; do
+            echo "Cycle attempt $attempt of 3"
+            if npm run cycle; then
+              exit 0
+            fi
+            if [[ "$attempt" -lt 3 ]]; then
+              delay=$((30 * 2 ** (attempt - 1)))
+              echo "Cycle failed; retrying in ${delay}s"
+              sleep "$delay"
+            fi
+          done
+          echo "::error::Cycle failed after 3 attempts"
+          exit 1
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           NETWORK: testnet
           DRY_RUN: ${{ vars.DRY_RUN }}
+
       - name: Publish latest receipt
         if: always()
-        run: npm run publish:telemetry
+        run: |
+          if [[ -f bot/last-trade-receipt.json && -f bot/trade-history.json ]]; then
+            npm run publish:telemetry
+          else
+            echo "::warning::No cycle receipt was produced; skipping telemetry publication"
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
