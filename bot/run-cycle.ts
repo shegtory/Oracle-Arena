@@ -39,6 +39,8 @@ import {
 import { privateKeyToAccount } from 'viem/accounts';
 
 const BOT_DIR = dirname(fileURLToPath(import.meta.url));
+loadEnv(BOT_DIR);
+
 export const CONFIG = {
   // Temporary third-party fallback while the Somnia-operated RPC returns 403.
   rpc: 'https://rpc.ankr.com/somnia_testnet',
@@ -63,6 +65,7 @@ export const CONFIG = {
   minTimeLeftSeconds: Number(process.env.MIN_TIME_LEFT_SECONDS ?? 15),
   minLiquidityShares: Number(process.env.MIN_LIQUIDITY_SHARES ?? 50),
   askPremium: Number(process.env.ASK_PREMIUM ?? .01),
+  dryRun: (process.env.DRY_RUN ?? 'true').toLowerCase() !== 'false' && process.env.DRY_RUN !== '0',
   grid: .001,
   stateFile: resolve(BOT_DIR, 'traded-markets.json'),
   receiptFile: resolve(BOT_DIR, 'last-trade-receipt.json'),
@@ -969,6 +972,11 @@ Strike relation (spot vs strike, trend direction): ${strikeRelation}
     };
     if (!risk.allowed) {
       out.order = { status: 'skipped', reason: risk.reason };
+      return out;
+    }
+
+    if (CONFIG.dryRun) {
+      out.order = { status: 'skipped', reason: 'dry run: execution disabled by configuration' };
       return out;
     }
 

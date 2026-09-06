@@ -93,6 +93,20 @@ DRY_RUN=true
 
 Keep `DRY_RUN=true` while validating configuration. Change it only when the wallet is funded and you intend to submit testnet transactions.
 
+## Deployment and live telemetry
+
+The dashboard is deployed as a static Vite application with root-level Vercel API functions. Runtime receipts are stored on the repository's `telemetry` branch rather than in the serverless filesystem.
+
+The scheduled workflow in `.github/workflows/cycle.yml` runs every 15 minutes and can also be started manually. After each cycle it publishes `latest.json` and `history.json`; the Vercel API reads those files directly from the public telemetry branch.
+
+To enable scheduled cycles:
+
+1. Add a repository Actions secret named `PRIVATE_KEY` containing a dedicated funded testnet wallet key.
+2. Leave the repository variable `DRY_RUN` unset or set it to `true` while validating the runner.
+3. Set `DRY_RUN=false` only when scheduled testnet order execution is intended.
+4. Run **Run Oracle Arena cycle** once from the Actions tab and inspect its receipt before relying on the schedule.
+
+The dashboard continues to display the most recently published real cycles while no runner is active.
 ## Development
 
 Typecheck the trading service:

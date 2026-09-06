@@ -1,0 +1,36 @@
+name: Run Oracle Arena cycle
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: oracle-arena-cycle
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Run cycle
+        run: npm run cycle
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          NETWORK: testnet
+          DRY_RUN: ${{ vars.DRY_RUN }}
+      - name: Publish latest receipt
+        if: always()
+        run: npm run publish:telemetry
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,1 +1,0 @@
-import{jsonFile,send}from'./_files.mjs';export default async function handler(_req,res){const data=await jsonFile('last-trade-receipt.json',null);send(res,data??{error:'No trade receipt available'},data?200:404)}
