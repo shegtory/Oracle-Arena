@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { reconcileHistory } from './reconcile-history.mjs';
 
 const token = process.env.GITHUB_TOKEN;
 const repository = process.env.GITHUB_REPOSITORY || 'shegtory/Oracle-Arena';
@@ -43,10 +44,10 @@ try {
 const latest = JSON.parse(await readFile(resolve('bot', 'last-trade-receipt.json'), 'utf8'));
 const localHistory = JSON.parse(await readFile(resolve('bot', 'trade-history.json'), 'utf8'));
 const remoteHistory = await readRemoteJson('history.json', []);
-const mergedHistory = [...(Array.isArray(localHistory) ? localHistory : []), ...(Array.isArray(remoteHistory) ? remoteHistory : [])]
+const mergedHistory = await reconcileHistory([...(Array.isArray(localHistory) ? localHistory : []), ...(Array.isArray(remoteHistory) ? remoteHistory : [])]
   .filter((entry, index, all) => entry?.cycleId && all.findIndex((candidate) => candidate?.cycleId === entry.cycleId) === index)
   .sort((a, b) => Date.parse(b.finishedAt || b.startedAt || 0) - Date.parse(a.finishedAt || a.startedAt || 0))
-  .slice(0, historyLimit);
+  .slice(0, historyLimit));
 
 const files = [
   ['latest.json', latest],
