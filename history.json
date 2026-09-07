@@ -1,6 +1,102 @@
 [
   {
     "schemaVersion": 2,
+    "cycleId": "2877a510-afb5-487d-ae01-142c2452ac30",
+    "startedAt": "2026-09-07T06:17:51.263Z",
+    "currentStage": "no_eligible_market",
+    "stageStartedAt": "2026-09-07T06:19:57.133Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://rpc.ankr.com/somnia_testnet"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "481888310",
+      "fromBlock": "481882311",
+      "scanBlocks": "6000",
+      "scanChunks": 6,
+      "scanAttempts": 1,
+      "maxCandidates": 10,
+      "metadataSource": "on-chain MarketCreated event",
+      "candidates": [
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000015b2a",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 3,
+          "question": "Pricefeed test: will ETH/USDC's price be at or above 2506.04 at unix time 1788762000?",
+          "strike": "2506.04",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x0000000000000000000000000000000000000000000000000000000000015b29",
+          "asset": "BTC",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 3,
+          "question": "Pricefeed test: will BTC/USDC's price be at or above 79736.70 at unix time 1788762000?",
+          "strike": "79736.7",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        }
+      ]
+    },
+    "priceSignal": {
+      "method": "two finalized BTC spot samples plus current ETH spot",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "requestId": "13424582",
+        "txHash": "0x96ae1efc1e9c96d975f717b844d3bc503424eed2710250680b58ef33a4769b82",
+        "valueWei": "120000000000000000",
+        "raw": "7978300000000",
+        "usd": 79783,
+        "receivedAt": "2026-09-07T06:17:55.039Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "requestId": "13424703",
+        "txHash": "0x08f64ece384cd2975b93dbd8dd30920cd6aae4c5328d31b6b09df0b533ff3d65",
+        "valueWei": "120000000000000000",
+        "raw": "7976300000000",
+        "usd": 79763,
+        "receivedAt": "2026-09-07T06:19:56.198Z"
+      },
+      "eth": {
+        "asset": "ETH",
+        "requestId": "13424705",
+        "txHash": "0x529fbd8d16dba1434b6a2a9cafe3185591ec1ae2d5ca943b21c995c821634d0f",
+        "valueWei": "120000000000000000",
+        "raw": "250751000000",
+        "usd": 2507.51,
+        "receivedAt": "2026-09-07T06:19:57.133Z"
+      },
+      "changePct": -0.025067996941704373,
+      "trend": "DOWN"
+    },
+    "marketContext": null,
+    "llmDecision": {
+      "skipped": true,
+      "reason": "no eligible live BTC market among 10 on-chain MarketCreated candidates"
+    },
+    "riskGate": null,
+    "order": {
+      "status": "skipped",
+      "reason": "no eligible live BTC market among 10 on-chain MarketCreated candidates"
+    },
+    "error": null,
+    "finishedAt": "2026-09-07T06:19:57.738Z"
+  },
+  {
+    "schemaVersion": 2,
     "cycleId": "7c60fa3f-fd31-410b-8de6-c307d07e87f1",
     "startedAt": "2026-09-07T05:56:33.556Z",
     "currentStage": "complete",
