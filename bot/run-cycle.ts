@@ -784,10 +784,14 @@ export async function runCycle() {
 
     // Item 4: if no eligible market, skip the cycle cleanly BEFORE calling the LLM.
     if (!chosen) {
+      const reason = eligible.length
+        ? `no executable YES/NO liquidity across ${eligible.length} eligible BTC market candidate(s)`
+        : `no eligible live BTC market among ${ids.length} on-chain MarketCreated candidates`;
       out.llmDecision = {
         skipped: true,
-        reason: `no eligible live BTC market among ${ids.length} on-chain MarketCreated candidates`,
+        reason,
       };
+      out.order = { status: 'skipped', reason };
       out.currentStage = 'no_eligible_market';
       out.finishedAt = nowIso();
       persist();
