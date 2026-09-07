@@ -13,11 +13,21 @@ const headers = {
   'Content-Type': 'application/json',
 };
 const api = `https://api.github.com/repos/${repository}`;
+const historyLimit = 20;
 
 async function request(path, options = {}) {
   const response = await fetch(`${api}${path}`, { ...options, headers: { ...headers, ...options.headers } });
   if (!response.ok) throw new Error(`${options.method || 'GET'} ${path}: ${response.status} ${await response.text()}`);
   return response.json();
+}
+async function readRemoteJson(path, fallback) {
+  try {
+    const file = await request(`/contents/${path}?ref=${encodeURIComponent(branch)}`);
+    return JSON.parse(Buffer.from(file.content, 'base64').toString('utf8'));
+  } catch (error) {
+    if (String(error).includes('404')) return fallback;
+    throw error;
+  }
 }
 
 let parent;
@@ -30,13 +40,21 @@ try {
   parent = main;
 }
 
+const latest = JSON.parse(await readFile(resolve('bot', 'last-trade-receipt.json'), 'utf8'));
+const localHistory = JSON.parse(await readFile(resolve('bot', 'trade-history.json'), 'utf8'));
+const remoteHistory = await readRemoteJson('history.json', []);
+const mergedHistory = [...(Array.isArray(localHistory) ? localHistory : []), ...(Array.isArray(remoteHistory) ? remoteHistory : [])]
+  .filter((entry, index, all) => entry?.cycleId && all.findIndex((candidate) => candidate?.cycleId === entry.cycleId) === index)
+  .sort((a, b) => Date.parse(b.finishedAt || b.startedAt || 0) - Date.parse(a.finishedAt || a.startedAt || 0))
+  .slice(0, historyLimit);
+
 const files = [
-  ['latest.json', resolve('bot', 'last-trade-receipt.json')],
-  ['history.json', resolve('bot', 'trade-history.json')],
+  ['latest.json', latest],
+  ['history.json', mergedHistory],
 ];
 const tree = [];
-for (const [path, source] of files) {
-  const content = JSON.stringify(JSON.parse(await readFile(source, 'utf8')), null, 2) + '\n';
+for (const [path, value] of files) {
+  const content = JSON.stringify(value, null, 2) + '\n';
   const blob = await request('/git/blobs', {
     method: 'POST',
     body: JSON.stringify({ content, encoding: 'utf-8' }),

@@ -672,7 +672,8 @@ export async function runCycle() {
     }
     const { head, from, ids } = scanned;
     const checked: any[] = [];
-    let chosen: { id: Hex; m: MarketOnchain; row: any; asset: string } | undefined;
+    const eligible: Array<{ id: Hex; m: MarketOnchain; row: any; asset: string; secondsLeft: number; checkedIndex: number }> = [];
+    let chosen: ({ id: Hex; m: MarketOnchain; row: any; asset: string; rawBook: any; yesAsks: Array<[number, number]>; noAsks: Array<[number, number]> }) | undefined;
 
     for (const id of ids) {
       let m: MarketOnchain | null = null;
@@ -722,12 +723,52 @@ export async function runCycle() {
         metadataSource: 'MarketCreated event',
         error: null,
       });
-      if (
-        !chosen &&
-        asset === 'BTC' &&
-        left > CONFIG.minTimeLeftSeconds
-      )
-        chosen = { id, m, row, asset };
+      if (asset === 'BTC' && left > CONFIG.minTimeLeftSeconds)
+        eligible.push({ id, m, row, asset, secondsLeft: left, checkedIndex: checked.length - 1 });
+    }
+
+    // Prefer markets with more remaining time, then require executable liquidity.
+    // Each raw contract response is retained in the receipt so an empty book can
+    // be distinguished from an RPC/ABI failure after the run.
+    eligible.sort((a, b) => b.secondsLeft - a.secondsLeft);
+    for (const candidate of eligible) {
+      const candidateLog = checked[candidate.checkedIndex];
+      try {
+        const rawBook = await readBinaryOrderBookDirect(candidate.m.pool, 10);
+        const serializeLevels = (levels: any[]) => (levels ?? []).map((entry: any) => {
+          const price = Array.isArray(entry) ? entry[0] : (entry.price ?? 0n);
+          const quantity = Array.isArray(entry) ? entry[1] : (entry.quantity ?? 0n);
+          return { price: String(price), quantity: String(quantity) };
+        });
+        const normalizeLevels = (levels: any[]): Array<[number, number]> => (levels ?? []).map((entry: any) => {
+          const price = Array.isArray(entry) ? entry[0] : (entry.price ?? 0n);
+          const quantity = Array.isArray(entry) ? entry[1] : (entry.quantity ?? 0n);
+          return [Number(price) / 1e6, Number(quantity) / 1e6];
+        });
+        const yesAsks = normalizeLevels(rawBook.yesAsks);
+        const noAsks = normalizeLevels(rawBook.noAsks);
+        candidateLog.orderBook = {
+          source: 'getBookLevels',
+          rawYesBids: serializeLevels(rawBook.yesBids),
+          rawYesAsks: serializeLevels(rawBook.yesAsks),
+          derivedNoAsks: serializeLevels(rawBook.noAsks),
+          usableYesAsk: yesAsks[0]?.[0] ?? null,
+          usableNoAsk: noAsks[0]?.[0] ?? null,
+          error: null,
+        };
+        if (!chosen && (yesAsks[0]?.[0] ?? 0) > 0 && (noAsks[0]?.[0] ?? 0) > 0)
+          chosen = { ...candidate, rawBook, yesAsks, noAsks };
+      } catch (error) {
+        candidateLog.orderBook = {
+          source: 'getBookLevels',
+          rawYesBids: null,
+          rawYesAsks: null,
+          derivedNoAsks: null,
+          usableYesAsk: null,
+          usableNoAsk: null,
+          error: errorMessage(error).slice(0, 500),
+        };
+      }
     }
 
     out.discovery = {
@@ -761,20 +802,11 @@ export async function runCycle() {
     const secondsLeft = Number(mOnchain.expiry) - Math.floor(Date.now() / 1000);
     const asset = chosen.asset;
 
-    // Order book: best executable YES/NO prices
-    const rawBook = await readBinaryOrderBookDirect(pool, 10);
-    const yesAsks: Array<[number, number]> = (rawBook.yesAsks ?? [])
-      .map((entry: any) => {
-        const p = Array.isArray(entry) ? entry[0] : (entry.price ?? 0n);
-        const q = Array.isArray(entry) ? entry[1] : (entry.quantity ?? 0n);
-        return [Number(p) / 1e6, Number(q) / 1e6];
-      });
-    const noAsks: Array<[number, number]> = (rawBook.noAsks ?? [])
-      .map((entry: any) => {
-        const p = Array.isArray(entry) ? entry[0] : (entry.price ?? 0n);
-        const q = Array.isArray(entry) ? entry[1] : (entry.quantity ?? 0n);
-        return [Number(p) / 1e6, Number(q) / 1e6];
-      });
+    // Reuse the book snapshot that made this candidate eligible, keeping market
+    // selection and the eventual executable context internally consistent.
+    const rawBook = chosen.rawBook;
+    const yesAsks = chosen.yesAsks;
+    const noAsks = chosen.noAsks;
     const bestYesAsk = yesAsks[0]?.[0] ?? 0;
     const bestNoAsk = noAsks[0]?.[0] ?? 0;
     const mid = (bestYesAsk + bestNoAsk) > 0
