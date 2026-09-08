@@ -9,7 +9,7 @@
   "scripts": {
     "cycle": "tsx bot/run-cycle.ts",
     "typecheck": "tsc -p bot/tsconfig.json",
-    "test": "tsx --test bot/risk-gate.test.ts bot/price-signal.test.ts && node --test scripts/reconcile-history.test.mjs",
+    "test": "node --require ./scripts/test-bootstrap.cjs --import tsx --test bot/*.test.ts frontend/src/*.test.ts && node --test scripts/*.test.mjs api/*.test.mjs",
     "verify": "npm run typecheck && npm test",
     "build": "npm run typecheck && npm run build --workspace oracle-arena-dashboard",
     "build:frontend": "npm run build --workspace oracle-arena-dashboard",
