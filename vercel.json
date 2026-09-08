@@ -2,5 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "npm install",
   "buildCommand": "npm run build:frontend",
-  "outputDirectory": "frontend/dist"
+  "outputDirectory": "frontend/dist",
+  "rewrites": [
+    { "source": "/api/signals/latest", "destination": "/api/signals-latest" },
+    { "source": "/api/cycles/:id/evidence", "destination": "/api/cycle-view?id=:id&evidence=1" },
+    { "source": "/api/cycles/:id", "destination": "/api/cycle-view?id=:id" }
+  ]
 }

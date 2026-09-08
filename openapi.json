@@ -1,0 +1,18 @@
+{
+  "openapi": "3.0.3",
+  "info": { "title": "Oracle Arena Read API", "version": "1.0.0" },
+  "paths": {
+    "/api/signals/latest": { "get": { "responses": { "200": { "description": "Latest versioned signal" }, "503": { "$ref": "#/components/responses/TelemetryUnavailable" } } } },
+    "/api/performance": { "get": { "responses": { "200": { "description": "Fill-based performance; unavailable financial values are null" } } } },
+    "/api/cycles/{id}": { "get": { "parameters": [{ "$ref": "#/components/parameters/CycleId" }], "responses": { "200": { "description": "Sanitized cycle" }, "400": { "$ref": "#/components/responses/InvalidCycle" }, "404": { "$ref": "#/components/responses/NotFound" } } } },
+    "/api/cycles/{id}/evidence": { "get": { "parameters": [{ "$ref": "#/components/parameters/CycleId" }], "responses": { "200": { "description": "Sanitized evidence bundle with a canonical SHA-256 content hash" }, "400": { "$ref": "#/components/responses/InvalidCycle" }, "404": { "$ref": "#/components/responses/NotFound" } } } }
+  },
+  "components": {
+    "parameters": { "CycleId": { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "pattern": "^[A-Za-z0-9._:-]{1,128}$" } } },
+    "responses": {
+      "InvalidCycle": { "description": "Invalid cycle id" },
+      "NotFound": { "description": "Cycle not found" },
+      "TelemetryUnavailable": { "description": "Latest telemetry is unavailable" }
+    }
+  }
+}

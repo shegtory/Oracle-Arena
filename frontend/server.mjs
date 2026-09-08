@@ -3,6 +3,9 @@ import { readFile } from 'node:fs/promises';
 import { extname, resolve } from 'node:path';
 import receipt from '../api/trade-receipt.mjs';
 import history from '../api/trade-history.mjs';
+import signal from '../api/signals-latest.mjs';
+import performance from '../api/performance.mjs';
+import cycleView from '../api/cycle-view.mjs';
 
 const port = Number(process.env.PORT || 4173);
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json' };
@@ -10,6 +13,9 @@ const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/cs
 createServer(async (req, res) => {
   if (req.url?.startsWith('/api/trade-receipt')) return receipt(req, res);
   if (req.url?.startsWith('/api/trade-history')) return history(req, res);
+  if (req.url?.startsWith('/api/signals/latest')) return signal(req, res);
+  if (req.url?.startsWith('/api/performance')) return performance(req, res);
+  if (req.url?.startsWith('/api/cycles/')) return cycleView(req, res);
   try {
     const cleanUrl = req.url?.split('?')[0] || '/';
     const url = cleanUrl === '/' ? '/index.html' : cleanUrl;

@@ -1,0 +1,1 @@
+import {send,telemetryFile} from './_telemetry.mjs';import {performanceFor} from './_views.mjs';export default async function handler(req,res){if(req.method&&req.method!=='GET')return send(res,{error:{code:'method_not_allowed',message:'GET required'}},405);send(res,performanceFor(await telemetryFile('history.json',[])))}

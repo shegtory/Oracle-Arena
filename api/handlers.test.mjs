@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import cycleView from './cycle-view.mjs';import performance from './performance.mjs';
+const response=()=>{const headers={};return{headers,statusCode:0,body:'',setHeader(k,v){headers[k]=v},end(v){this.body=v}}};
+test('invalid cycle id is rejected before telemetry lookup',async()=>{const res=response();await cycleView({method:'GET',url:'/api/cycles/not%2Fvalid'},res);assert.equal(res.statusCode,400);assert.equal(res.headers['Cache-Control'],'no-store, max-age=0');assert.equal(JSON.parse(res.body).error.code,'invalid_cycle_id')});
+test('new endpoints reject writes',async()=>{const res=response();await performance({method:'POST',url:'/api/performance'},res);assert.equal(res.statusCode,405);assert.equal(JSON.parse(res.body).error.code,'method_not_allowed')});
