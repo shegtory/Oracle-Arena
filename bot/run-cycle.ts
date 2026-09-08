@@ -25,6 +25,7 @@ import {
 import {
   createPublicClient,
   createWalletClient,
+  decodeAbiParameters,
   decodeEventLog,
   defineChain,
   encodeFunctionData,
@@ -37,6 +38,8 @@ import {
   type Hex,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { deriveExecutionInputs, parseDecision, riskGate, type RiskPolicy } from './risk-gate.js';
+import { medianPrice, MIN_PRICE_SOURCES, PRICE_SOURCES, type PriceAsset } from './price-signal.js';
 
 const BOT_DIR = dirname(fileURLToPath(import.meta.url));
 loadEnv(BOT_DIR);
@@ -57,6 +60,7 @@ export const CONFIG = {
   trendDelayMs: Number(process.env.TREND_SAMPLE_DELAY_MS ?? 120000),
   pollMs: 2000,
   timeoutMs: 120000,
+  priceSourceTimeoutMs: Number(process.env.PRICE_SOURCE_TIMEOUT_MS ?? 60000),
   scanBlocks: 6000n,
   maxCandidates: 10,
   indexerAttempts: 5,
@@ -72,28 +76,13 @@ export const CONFIG = {
   historyFile: resolve(BOT_DIR, 'trade-history.json'),
 } as const;
 
-export type Decision = 'UP' | 'DOWN' | 'SKIP';
-export interface StructuredDecision {
-  decision: Decision;
-  reasoning: string;
-  confidence?: string;
-}
-export interface RiskMarket {
-  marketId: Hex;
-  secondsLeft: number;
-  liquidityShares: number;
-  bestAsk: number;
-}
-export interface RiskConfig {
-  maxTradeTUSDC: number;
-  minTimeLeftSeconds: number;
-  minLiquidityShares: number;
-  tradedMarketIds: ReadonlySet<string>;
-}
-export interface RiskResult {
-  allowed: boolean;
-  reason: string;
-}
+const RISK_POLICY: RiskPolicy = {
+  maxTradeTUSDC: CONFIG.maxTradeTUSDC,
+  minTimeLeftSeconds: CONFIG.minTimeLeftSeconds,
+  minLiquidityShares: CONFIG.minLiquidityShares,
+  askPremium: CONFIG.askPremium,
+  grid: CONFIG.grid,
+};
 
 /** Contract-specific data used for inference. Captured for the receipt. */
 export interface MarketContext {
@@ -115,27 +104,6 @@ export interface MarketContext {
   status: number;
   yesAsks: Array<[number, number]>;
   noAsks: Array<[number, number]>;
-}
-
-/** Pure deterministic policy: never calls RPC or AI. */
-export function riskGate(
-  d: StructuredDecision,
-  m: RiskMarket,
-  c: RiskConfig,
-): RiskResult {
-  const r: string[] = [];
-  if (d.decision === 'SKIP') r.push('LLM selected SKIP');
-  if (!(c.maxTradeTUSDC > 0)) r.push('max trade size is not positive');
-  if (m.secondsLeft <= c.minTimeLeftSeconds)
-    r.push(`${m.secondsLeft}s left; minimum is ${c.minTimeLeftSeconds}s`);
-  if (m.liquidityShares < c.minLiquidityShares)
-    r.push(`${m.liquidityShares} shares liquidity; minimum is ${c.minLiquidityShares}`);
-  if (c.tradedMarketIds.has(m.marketId.toLowerCase()))
-    r.push('marketId already traded');
-  return {
-    allowed: !r.length,
-    reason: r.length ? r.join('; ') : 'all deterministic checks passed',
-  };
 }
 
 const platformAbi = parseAbi([
@@ -192,24 +160,6 @@ const callbackSelector = (name: 'handleResponse' | 'handleLlmResponse') =>
   toFunctionSelector(callbackAbi.find((x) => x.type === 'function' && x.name === name));
 const sleep = (n: number) => new Promise<void>((r) => setTimeout(r, n));
 const nowIso = () => new Date().toISOString();
-
-function parseDecision(raw: string): StructuredDecision {
-  const s = raw.trim().replace(/^```(?:json)?\s*|\s*```$/g, '');
-  try {
-    const x = JSON.parse(s);
-    const v = String(x.decision ?? x.direction ?? '').toUpperCase();
-    if (['UP', 'DOWN', 'SKIP'].includes(v))
-      return {
-        decision: v as Decision,
-        reasoning: String(x.reasoning ?? x.reason ?? 'No reason supplied'),
-        confidence: x.confidence == null ? undefined : String(x.confidence),
-      };
-  } catch { /* fall through to enum-only parse */ }
-  const v = s.toUpperCase();
-  if (['UP', 'DOWN', 'SKIP'].includes(v))
-    return { decision: v as Decision, reasoning: 'enum-only response' };
-  throw Error(`invalid LLM output: ${raw}`);
-}
 
 function loadTraded() {
   try { return new Set<string>(JSON.parse(readFileSync(CONFIG.stateFile, 'utf8'))); }
@@ -345,26 +295,6 @@ export async function runCycle() {
     const expiresAt = Math.min(nowSec + args.expiresInSec, Number(args.onchain.expiry));
     if (expiresAt <= nowSec) throw Error('market expired before order submission');
     const priceYes = args.outcome === 'YES' ? priceOwn : one - priceOwn;
-    const requiredCollateral =
-      (quantity * priceOwn + one - 1n) / one;
-    const allowance = await marketPub.readContract({
-      address: args.onchain.collateral,
-      abi: erc20ReadAbi,
-      functionName: 'allowance',
-      args: [account.address, args.onchain.pool],
-      blockTag: 'latest',
-    });
-    if (allowance < requiredCollateral) {
-      const approvalHash = await wallet.writeContract({
-        address: args.onchain.collateral,
-        abi: erc20ReadAbi,
-        functionName: 'approve',
-        args: [args.onchain.pool, (1n << 256n) - 1n],
-      });
-      const approvalReceipt = await marketPub.waitForTransactionReceipt({ hash: approvalHash });
-      if (approvalReceipt.status !== 'success')
-        throw Error(`collateral approval ${approvalHash} reverted on-chain`);
-    }
     const hash = await wallet.writeContract({
       address: args.onchain.pool,
       abi: binaryPoolWriteAbi,
@@ -404,6 +334,27 @@ export async function runCycle() {
       price: Number(priceOwn) / Number(one),
       fills,
     };
+  }
+
+  async function ensureAllowance(onchain: MarketOnchain, requiredHumanCost: number) {
+    const one = 10n ** BigInt(ctx.config.decimals);
+    const requiredCollateral = BigInt(Math.ceil(requiredHumanCost * Number(one)));
+    const allowance = await marketPub.readContract({
+      address: onchain.collateral,
+      abi: erc20ReadAbi,
+      functionName: 'allowance',
+      args: [account.address, onchain.pool],
+      blockTag: 'latest',
+    });
+    if (allowance >= requiredCollateral) return;
+    const approvalHash = await wallet.writeContract({
+      address: onchain.collateral,
+      abi: erc20ReadAbi,
+      functionName: 'approve',
+      args: [onchain.pool, (1n << 256n) - 1n],
+    });
+    const approvalReceipt = await marketPub.waitForTransactionReceipt({ hash: approvalHash });
+    if (approvalReceipt.status !== 'success') throw Error(`collateral approval ${approvalHash} reverted on-chain`);
   }
 
   const out: any = {
@@ -500,6 +451,27 @@ export async function runCycle() {
       return { yesBids: [...yesBids], yesAsks: [...yesAsks], noBids, noAsks };
     }
 
+    const normalizeLevels = (levels: any[]): Array<[number, number]> => (levels ?? []).map((entry: any) => {
+      const price = Array.isArray(entry) ? entry[0] : (entry.price ?? 0n);
+      const quantity = Array.isArray(entry) ? entry[1] : (entry.quantity ?? 0n);
+      return [Number(price) / 1e6, Number(quantity) / 1e6];
+    });
+
+    /** A new on-chain market and order-book read for each safety boundary. */
+    async function freshExecutionSnapshot(marketId: Hex, decision: ReturnType<typeof parseDecision>) {
+      const onchain = await readMarketOnchainDirect(marketId);
+      const book = await readBinaryOrderBookDirect(onchain.pool, 10);
+      const execution = deriveExecutionInputs(
+        decision,
+        Number(onchain.expiry),
+        normalizeLevels(book.yesAsks),
+        normalizeLevels(book.noAsks),
+        RISK_POLICY,
+        Date.now(),
+      );
+      return { onchain, book, execution, checkedAt: nowIso() };
+    }
+
     const floor = await pub.readContract({
       address: CONFIG.platform,
       abi: platformAbi,
@@ -511,6 +483,7 @@ export async function runCycle() {
       payload: Hex,
       price: bigint,
       kind: 'price' | 'decision',
+      timeoutMs: number = CONFIG.timeoutMs,
     ) {
       const value = floor + price * CONFIG.committee;
       const selector = callbackSelector(
@@ -538,7 +511,7 @@ export async function runCycle() {
       );
       const event = kind === 'price' ? callbackEvents[0] : callbackEvents[1];
       const start = Date.now();
-      while (Date.now() - start < CONFIG.timeoutMs) {
+      while (Date.now() - start < timeoutMs) {
         const logs = await pub.getLogs({
           address: CONFIG.callback,
           event: event as any,
@@ -553,18 +526,10 @@ export async function runCycle() {
           if (Number(hit.args.status) !== 2)
             throw Error(`callback request ${id} status ${hit.args.status}`);
           if (kind === 'price') {
-            const raw = await pub.readContract({
-              address: CONFIG.callback,
-              abi: callbackAbi,
-              functionName: 'getLastPriceAsUint',
-            });
+            const raw = decodeAbiParameters([{ type: 'uint256' }], hit.args.result as Hex)[0];
             return { id, hash, value, result: raw };
           }
-          const result = await pub.readContract({
-            address: CONFIG.callback,
-            abi: callbackAbi,
-            functionName: 'getLastDecision',
-          });
+          const result = String(hit.args.decision);
           return { id, hash, value, result };
         }
         await sleep(CONFIG.pollMs);
@@ -572,25 +537,35 @@ export async function runCycle() {
       throw Error(`callback request ${id} timed out`);
     }
 
-    async function sample(asset: 'bitcoin' | 'ethereum') {
-      const payload = encodeFunctionData({
-        abi: fetchAbi,
-        functionName: 'fetchUint',
-        args: [
-          `https://api.coingecko.com/api/v3/simple/price?ids=${asset}&vs_currencies=usd`,
-          `${asset}.usd`,
-          8,
-        ],
-      });
-      const r = await request(CONFIG.jsonAgent, payload, CONFIG.jsonPrice, 'price');
-      const raw = r.result as bigint;
+    async function sample(asset: PriceAsset) {
+      const sources: any[] = [];
+      // Wallet-backed requests stay sequential to avoid nonce races.
+      for (const source of PRICE_SOURCES) {
+        try {
+          const payload = encodeFunctionData({ abi: fetchAbi, functionName: 'fetchUint', args: [source.url(asset), source.path(asset), 8] });
+          const response = await request(CONFIG.jsonAgent, payload, CONFIG.jsonPrice, 'price', CONFIG.priceSourceTimeoutMs);
+          const raw = response.result as bigint;
+          const usd = Number(raw) / 1e8;
+          if (!Number.isFinite(usd) || usd <= 0) throw Error(`${source.name} returned an invalid price`);
+          sources.push({ source: source.name, ok: true, requestId: response.id.toString(), txHash: response.hash, valueWei: response.value.toString(), raw: raw.toString(), usd, receivedAt: nowIso() });
+        } catch (error) {
+          sources.push({ source: source.name, ok: false, error: errorMessage(error).slice(0, 300), receivedAt: nowIso() });
+        }
+      }
+      const successful = sources.filter((source) => source.ok);
+      const usd = medianPrice(successful.map((source) => source.usd), MIN_PRICE_SOURCES);
+      const representative = successful.reduce((closest, source) => Math.abs(source.usd - usd) < Math.abs(closest.usd - usd) ? source : closest);
       return {
         asset: asset === 'bitcoin' ? 'BTC' : 'ETH',
-        requestId: r.id.toString(),
-        txHash: r.hash,
-        valueWei: r.value.toString(),
-        raw: raw.toString(),
-        usd: Number(raw) / 1e8,
+        method: 'multi-source median',
+        minimumSources: MIN_PRICE_SOURCES,
+        successfulSources: successful.length,
+        sources,
+        requestId: representative.requestId,
+        txHash: representative.txHash,
+        valueWei: representative.valueWei,
+        raw: representative.raw,
+        usd,
         receivedAt: nowIso(),
       };
     }
@@ -607,7 +582,7 @@ export async function runCycle() {
     stage('eth_price');
     const eth = await sample('ethereum');
     out.priceSignal = {
-      method: 'two finalized BTC spot samples plus current ETH spot',
+      method: `median of at least ${MIN_PRICE_SOURCES}/${PRICE_SOURCES.length} on-chain JSON Agent sources per observation`,
       sampleDelayMs: CONFIG.trendDelayMs,
       first,
       current,
@@ -739,11 +714,6 @@ export async function runCycle() {
           const price = Array.isArray(entry) ? entry[0] : (entry.price ?? 0n);
           const quantity = Array.isArray(entry) ? entry[1] : (entry.quantity ?? 0n);
           return { price: String(price), quantity: String(quantity) };
-        });
-        const normalizeLevels = (levels: any[]): Array<[number, number]> => (levels ?? []).map((entry: any) => {
-          const price = Array.isArray(entry) ? entry[0] : (entry.price ?? 0n);
-          const quantity = Array.isArray(entry) ? entry[1] : (entry.quantity ?? 0n);
-          return [Number(price) / 1e6, Number(quantity) / 1e6];
         });
         const yesAsks = normalizeLevels(rawBook.yesAsks);
         const noAsks = normalizeLevels(rawBook.noAsks);
@@ -959,52 +929,30 @@ Strike relation (spot vs strike, trend direction): ${strikeRelation}
     };
     persist();
 
-    // ---- Stage 8: risk_gate (unchanged logic, uses new marketContext fields) ----
+    // ---- Stage 8: risk_gate — discard the pre-inference market/book snapshot ----
     stage('risk_gate');
-    const outcome = decision.decision === 'UP' ? 'YES' : 'NO';
-    const asks = outcome === 'YES' ? yesAsks : noAsks;
-    if (!asks[0]) throw Error(`${outcome} ask book empty`);
-    const ask = asks[0][0];
-    const limit = Math.min(
-      .99,
-      Math.ceil((ask + CONFIG.askPremium) * 1000) / 1000,
-    );
-    const size = Math.floor((CONFIG.maxTradeTUSDC / limit) / CONFIG.grid) * CONFIG.grid;
-    const liq = asks
-      .filter(([p]) => p <= limit)
-      .reduce((s, [, q]) => s + q, 0);
     const traded = loadTraded();
-    const risk = riskGate(
+    let fresh = await freshExecutionSnapshot(chosen.id, decision);
+    let risk = riskGate({
       decision,
-      {
-        marketId: chosen.id,
-        secondsLeft,
-        liquidityShares: liq,
-        bestAsk: ask,
-      },
-      {
-        maxTradeTUSDC: CONFIG.maxTradeTUSDC,
-        minTimeLeftSeconds: CONFIG.minTimeLeftSeconds,
-        minLiquidityShares: CONFIG.minLiquidityShares,
-        tradedMarketIds: traded,
-      },
-    );
+      marketId: chosen.id,
+      marketStatus: Number(fresh.onchain.status),
+      ...fresh.execution,
+      tradedMarketIds: traded,
+      policy: RISK_POLICY,
+    });
 
     out.riskGate = {
       ...risk,
-      checkedAt: nowIso(),
+      checkedAt: fresh.checkedAt,
       marketId: chosen.id,
-      pool,
-      tradingStart: Number((mOnchain as any).tradingStart ?? 0),
-      expiry: Number(mOnchain.expiry),
-      windowSeconds: Number(mOnchain.expiry) - Number((mOnchain as any).tradingStart ?? mOnchain.expiry),
-      outcome,
-      bestAsk: ask,
-      limitPrice: limit,
-      sizeShares: size,
-      maxCostTUSDC: size * limit,
-      secondsLeft,
-      liquidityShares: liq,
+      pool: fresh.onchain.pool,
+      marketStatus: Number(fresh.onchain.status),
+      tradingStart: Number((fresh.onchain as any).tradingStart ?? 0),
+      expiry: Number(fresh.onchain.expiry),
+      windowSeconds: Number(fresh.onchain.expiry) - Number((fresh.onchain as any).tradingStart ?? fresh.onchain.expiry),
+      ...fresh.execution,
+      validationCount: 1,
     };
     if (!risk.allowed) {
       out.order = { status: 'skipped', reason: risk.reason };
@@ -1018,12 +966,40 @@ Strike relation (spot vs strike, trend direction): ${strikeRelation}
 
     // ---- Stage 9: order execution through the injected Ankr trader ----
     stage('order_execution');
+    await ensureAllowance(fresh.onchain, fresh.execution.maxCostTUSDC);
+    // Revalidate once more immediately before the wallet write. This prevents
+    // approval latency or any earlier processing from making the gate stale.
+    fresh = await freshExecutionSnapshot(chosen.id, decision);
+    risk = riskGate({
+      decision,
+      marketId: chosen.id,
+      marketStatus: Number(fresh.onchain.status),
+      ...fresh.execution,
+      tradedMarketIds: loadTraded(),
+      policy: RISK_POLICY,
+    });
+    out.riskGate = {
+      ...out.riskGate,
+      ...risk,
+      revalidatedAt: fresh.checkedAt,
+      pool: fresh.onchain.pool,
+      marketStatus: Number(fresh.onchain.status),
+      expiry: Number(fresh.onchain.expiry),
+      ...fresh.execution,
+      validationCount: 2,
+    };
+    persist();
+    if (!risk.allowed) {
+      out.order = { status: 'skipped', reason: `pre-submit revalidation: ${risk.reason}` };
+      return out;
+    }
+    const expiresInSec = Math.min(10, fresh.execution.secondsLeft - 1);
     const placed = await placeLimitViaAnkr({
-      onchain: mOnchain,
-      outcome,
-      price: limit,
-      size,
-      expiresInSec: Math.min(10, secondsLeft - 1),
+      onchain: fresh.onchain,
+      outcome: fresh.execution.outcome,
+      price: fresh.execution.limitPrice,
+      size: fresh.execution.sizeShares,
+      expiresInSec,
     });
     // Independent confirmation read: do not rely solely on the writer's return.
     const confirmed = await marketPub.getTransactionReceipt({ hash: placed.hash });
