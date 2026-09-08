@@ -1,6 +1,8 @@
 # Oracle Arena
 
-Oracle Arena is an autonomous event-contract trading system running on Somnia Testnet. It requests market data through Somnia's native JSON API Agent, asks the native LLM Inference Agent for a contract-aware directional decision, applies deterministic risk controls, and can submit bounded orders to DreamDEX binary markets.
+**An autonomous DreamDEX agent that proves every input, safety check, fill, and outcome on-chain.**
+
+Oracle Arena is an autonomous event-contract trading system running on Somnia Testnet. It requests market data through Somnia's native JSON API Agent, computes a deterministic fair value, asks the native LLM Inference Agent for a contract-aware explanation/veto, applies one fail-closed risk gate, and can submit bounded orders to DreamDEX binary markets.
 
 The public dashboard exposes the complete pipeline: price observations, market selection, inference, risk checks, execution receipts, accumulated cycle history, and resolved win/loss performance.
 
@@ -9,6 +11,14 @@ The public dashboard exposes the complete pipeline: price observations, market s
 - **Network:** Somnia Testnet (`50312`)
 
 > Oracle Arena is experimental testnet software. It deliberately skips a cycle when contract context, time remaining, or executable liquidity is insufficient.
+
+## Quick judge path
+
+- [Live app](https://oracle-arena-agent.vercel.app/)
+- [Latest cycle](https://oracle-arena-agent.vercel.app/api/trade-receipt)
+- Evidence download: select a cycle in the dashboard, then use **Download Evidence JSON**. The new route is local-only until these working-tree changes are deployed.
+- Filled transaction and settlement/redeem proof appear only when real hashes and confirmed receipts exist.
+- Run `npm run verify` and `npm run build` for the tested code path.
 
 ## What makes it different
 
@@ -33,14 +43,27 @@ Somnia agent IDs are numeric protocol identifiers, not addresses or transactions
 ## How a cycle works
 
 1. Request BTC/USD independently from CoinGecko, Binance, and Coinbase through the JSON API Agent; require at least two valid callbacks and use their median.
-2. Wait for the configured sampling interval, repeat the multi-source BTC observation, then collect a current multi-source ETH/USD median.
+2. Wait for the configured sampling interval and repeat the multi-source BTC observation. An ETH quorum is optional (`FETCH_ETH=true`) because it is not used by the BTC decision.
 3. Scan recent `MarketCreated` events, read authoritative market state directly from the binary contracts, and inspect raw order-book levels.
 4. Prefer eligible BTC markets with more time remaining and select the first candidate with executable YES and NO liquidity.
 5. Send the price trend, strike, time remaining, and live book context to the LLM Inference Agent.
 6. Match the callback event to the originating `requestId`, decode that event's payload directly, and strictly parse JSON containing only an `UP`, `DOWN`, or `SKIP` decision, a non-empty bounded reasoning string, and `low`, `medium`, or `high` confidence. Malformed or unknown output fails closed.
-7. Re-read on-chain status, expiry, and the selected-side order book, then apply the deterministic risk gate: maximum cost, minimum time, minimum executable liquidity, valid price/size, and duplicate-market protection.
-8. If real execution is enabled, handle any collateral approval, re-read the market and book once more, and submit only if the second gate passes; otherwise persist the exact skip or error reason.
-9. Merge the new receipt into the persistent telemetry history and reconcile previously traded markets against their on-chain settlement state.
+7. Estimate UP probability with the versioned `digital-lognormal-v1` model from spot, opening/strike reference, remaining time, and the observed short-horizon log-return volatility. Missing/flat inputs fail closed.
+8. Re-read on-chain status, expiry, and the selected-side order book, then apply the deterministic risk gate: expected edge, model/LLM disagreement, maximum cost, minimum time, executable liquidity, valid price/size, and duplicate-market protection.
+9. If real execution is enabled, handle any collateral approval, re-read the market and book once more, and submit only if the same gate passes again; otherwise persist the exact skip or error reason.
+10. Merge history, reconcile settlement, and optionally redeem eligible filled positions. Redeem is dry-run by default and verifies both transaction receipt and measured collateral received.
+
+## Fair value and expected-value gate
+
+The compact model treats the terminal log price as locally normal over the remaining seconds. Volatility is the RMS of timestamp-normalized log returns, expressed per square-root second, using quorum-validated observations retained from recent cycles. At least five observations (four returns) inside the configurable lookback are required; no fixed-volatility fallback is used. The probability is clamped to `[0,1]`; this intentionally small sample can still be weak in jumpy markets and is not a guarantee of profit. Market probability uses fresh normalized YES/NO asks, while selected edge uses the fresh executable limit price for the chosen outcome. The existing deterministic risk gate remains the only authority that can allow a trade; the LLM may explain, select `SKIP`, or be vetoed when its direction strongly conflicts with the model.
+
+## Redeem safety
+
+Telemetry publication checks only real filled positions. It requires a resolved or voided market, reads the wallet's ERC-6909 outcome balance and payout vector, caps the burn at the recorded filled quantity, re-reads immediately before writing, and records `not_eligible`, `eligible`, `confirmed`, `reverted`, or `already_redeemed`. Void vectors pay each held side according to the contract vector. Set `REDEEM_DRY_RUN=false` only for an explicitly authorized testnet run.
+
+## Evidence bundles
+
+`GET /api/cycles/:id/evidence` returns a sanitized, no-store, versioned JSON bundle containing source observations, request IDs and transaction hashes, raw and parsed inference, snapshots, fair value, risk inputs/results, execution, settlement, redeem, costs, and errors. A SHA-256 content hash detects accidental changes; it is explicitly not presented as on-chain immutability. Incomplete fields remain `null` rather than being fabricated.
 
 The current implementation intentionally keeps this orchestration in the single file `bot/run-cycle.ts`. It is not split into hypothetical `agents/`, `market/`, or `execution/` subdirectories.
 
@@ -200,6 +223,12 @@ These are the variables present in `.env.example`:
 | `ASK_PREMIUM` | No | `0.01` | Maximum premium added above the best ask |
 | `TREND_SAMPLE_DELAY_MS` | No | `120000` | Delay between BTC price observations |
 | `PRICE_SOURCE_TIMEOUT_MS` | No | `60000` | Per-provider JSON Agent timeout; failed providers remain visible in telemetry |
+| `FETCH_ETH` | No | `false` | Fetch an ETH quorum only when needed; BTC decisions do not consume it |
+| `MIN_EXPECTED_EDGE` | No | `0.03` | Minimum deterministic payout-probability edge |
+| `LLM_DISAGREEMENT_THRESHOLD` | No | `0.35` | Skip when model probability for the LLM direction is below this value |
+| `MIN_VOLATILITY_SAMPLES` | No | `5` | Minimum recent quorum-validated spot observations required by the model |
+| `VOLATILITY_LOOKBACK_SECONDS` | No | `3600` | Maximum observation age used for realized volatility |
+| `REDEEM_DRY_RUN` | No | `true` | Report redeem eligibility without writing |
 | `DRY_RUN` | No | `true` | Prevents order submission unless explicitly set to `false` |
 | `GITHUB_TOKEN` | Only for manual telemetry publishing | supplied automatically in Actions | Writes `latest.json` and `history.json` to the telemetry branch |
 
@@ -283,6 +312,7 @@ Repository configuration:
 
 - Actions secret: `PRIVATE_KEY`
 - Actions variable: `DRY_RUN` (`true` or `false`)
+- Actions variable: `REDEEM_DRY_RUN` (`true` by default; set `false` only for an explicitly authorized redeem run)
 
 GitHub-hosted cron is best-effort and may start later than the nominal minute. The dashboard displays the last persisted receipt between cycles, so its telemetry can be stale until the next successful publication; the `DATA LINK` indicator marks receipts older than 15 minutes as `STALE`.
 
@@ -298,8 +328,20 @@ outputDirectory: frontend/dist
 
 - `GET https://oracle-arena-agent.vercel.app/api/trade-receipt`
 - `GET https://oracle-arena-agent.vercel.app/api/trade-history`
+- `GET /api/signals/latest`
+- `GET /api/cycles/:id`
+- `GET /api/cycles/:id/evidence`
+- `GET /api/performance`
 
-Both endpoints disable response caching and read the persistent telemetry branch in production.
+All endpoints are read-only, disable response caching, and read the persistent telemetry branch in production. The four new routes describe the current working tree and will not exist on the live deployment until explicitly deployed. A compact OpenAPI description is stored in `openapi.json`.
+
+## Limitations
+
+- The five-observation default is still a small realized-volatility sample; the model skips insufficient or entirely flat history and records sample count/window explicitly.
+- A confirmed order is not a fill. Only `filledShares > 0` contributes to fills and settlement; stake/PnL additionally require the actual fill VWAP, never the submitted limit price.
+- Winning payout and realized PnL remain `unknown` until redeem is confirmed and the received collateral is measured. The attached Agent request value is recorded, but net Agent/gas cost remains `unknown` because refunds/final billing are not yet measured.
+- Testnet liquidity and the observed WIN/LOSS sample are too small for a profitability claim. The dashboard displays `Small sample — not statistically significant` below 30 resolved non-void fills.
+- These changes are implemented and tested locally but are not live until a separately approved deployment.
 
 ## Security
 
