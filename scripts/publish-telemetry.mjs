@@ -1,6 +1,7 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { reconcileHistory } from './reconcile-history.mjs';
+import { createRedeemDeps, redeemHistory } from './redeem-history.mjs';
 
 const token = process.env.GITHUB_TOKEN;
 const repository = process.env.GITHUB_REPOSITORY || 'shegtory/Oracle-Arena';
@@ -14,7 +15,6 @@ const headers = {
   'Content-Type': 'application/json',
 };
 const api = `https://api.github.com/repos/${repository}`;
-const historyLimit = 20;
 
 async function request(path, options = {}) {
   const response = await fetch(`${api}${path}`, { ...options, headers: { ...headers, ...options.headers } });
@@ -44,13 +44,19 @@ try {
 const latest = JSON.parse(await readFile(resolve('bot', 'last-trade-receipt.json'), 'utf8'));
 const localHistory = JSON.parse(await readFile(resolve('bot', 'trade-history.json'), 'utf8'));
 const remoteHistory = await readRemoteJson('history.json', []);
-const mergedHistory = await reconcileHistory([...(Array.isArray(localHistory) ? localHistory : []), ...(Array.isArray(remoteHistory) ? remoteHistory : [])]
+let mergedHistory = await reconcileHistory([...(Array.isArray(localHistory) ? localHistory : []), ...(Array.isArray(remoteHistory) ? remoteHistory : [])]
   .filter((entry, index, all) => entry?.cycleId && all.findIndex((candidate) => candidate?.cycleId === entry.cycleId) === index)
-  .sort((a, b) => Date.parse(b.finishedAt || b.startedAt || 0) - Date.parse(a.finishedAt || a.startedAt || 0))
-  .slice(0, historyLimit));
+  .sort((a, b) => (Date.parse(b.finishedAt || b.startedAt || 0) || 0) - (Date.parse(a.finishedAt || a.startedAt || 0) || 0)));
+if (process.env.PRIVATE_KEY) {
+  const deps=createRedeemDeps({rpc:process.env.RPC_URL||'https://rpc.ankr.com/somnia_testnet',moduleAddress:process.env.BINARY_MODULE||'0x3ecC694Cef705358864a646142ac17A90E29e388',privateKey:process.env.PRIVATE_KEY});
+  deps.persistSubmitted=async(entry,redeem)=>{const checkpoint=mergedHistory.map(item=>item?.cycleId===entry?.cycleId?{...item,redeem}:item);await writeFile(resolve('bot','trade-history.json'),JSON.stringify(checkpoint,null,2))};
+  const redeemDryRun=(process.env.REDEEM_DRY_RUN??'true').toLowerCase()!=='false'&&process.env.REDEEM_DRY_RUN!=='0';
+  mergedHistory=await redeemHistory(mergedHistory,deps,{dryRun:redeemDryRun});
+}
+const publishedLatest=mergedHistory.find(entry=>entry?.cycleId===latest?.cycleId)??latest;
 
 const files = [
-  ['latest.json', latest],
+  ['latest.json', publishedLatest],
   ['history.json', mergedHistory],
 ];
 const tree = [];
