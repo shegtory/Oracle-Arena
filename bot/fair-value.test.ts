@@ -1,0 +1,10 @@
+import test from 'node:test'; import assert from 'node:assert/strict';
+import { estimateRealizedVolatility, fairValue } from './fair-value.js';
+const base={spot:101,referencePrice:100,secondsLeft:60,volatility:.002,yesAsk:.55,noAsk:.48};
+test('fair value is bounded and exposes positive/negative edges',()=>{const r=fairValue(base,'YES');assert.ok(r.modelProbabilityUp>=0&&r.modelProbabilityUp<=1);assert.ok(r.edgeUp>0);assert.ok(r.edgeDown<0)});
+test('selected DOWN edge uses NO payout',()=>assert.equal(fairValue(base,'NO').selectedEdge,fairValue(base,'NO').edgeDown));
+test('near expiry remains bounded',()=>assert.ok(fairValue({...base,secondsLeft:.001},'YES').modelProbabilityUp<=1));
+test('zero volatility and invalid prices fail closed',()=>{assert.throws(()=>fairValue({...base,volatility:0},'YES'));assert.throws(()=>fairValue({...base,spot:0},'YES'))});
+test('volatility requires the configured observation count and reports its window',()=>{const obs=[100,101,100.5,102,101.5].map((usd,i)=>({usd,receivedAt:new Date(i*60_000).toISOString()}));assert.equal(estimateRealizedVolatility(obs,6),null);const v=estimateRealizedVolatility(obs,5)!;assert.equal(v.sampleCount,5);assert.equal(v.returnCount,4);assert.equal(v.windowSeconds,240);assert.ok(v.volatilityPerSqrtSecond>0)});
+test('flat, duplicate-time and invalid observations cannot invent volatility',()=>{const flat=[0,1,2,3,4].map(i=>({usd:100,receivedAt:new Date(i*1000).toISOString()}));assert.equal(estimateRealizedVolatility(flat),null);assert.equal(estimateRealizedVolatility([{usd:0,receivedAt:new Date(0).toISOString()}]),null)});
+test('YES includes equality through the digital threshold limit',()=>assert.ok(fairValue({...base,spot:100,referencePrice:100},'YES').modelProbabilityUp>=.5));

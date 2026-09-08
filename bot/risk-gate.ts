@@ -8,9 +8,11 @@ export interface RiskGateInput {
   decision: StructuredDecision; marketId: string; marketStatus: number; secondsLeft: number;
   liquidityShares: number; bestAsk: number; limitPrice: number; sizeShares: number;
   maxCostTUSDC: number; tradedMarketIds: ReadonlySet<string>; policy: RiskPolicy;
+  selectedEdge?: number; minimumEdge?: number; modelProbabilityUp?: number; llmDisagreementThreshold?: number;
 }
 export interface RiskResult { allowed: boolean; reason: string }
 export interface ExecutionInputs { outcome: 'YES' | 'NO'; bestAsk: number; limitPrice: number; sizeShares: number; maxCostTUSDC: number; liquidityShares: number; secondsLeft: number }
+export function fillVwap(outcome:'YES'|'NO',fills:ReadonlyArray<{quantityFilled:bigint;fillPrice:bigint}>,decimals=6):number|null{const one=10n**BigInt(decimals),quantity=fills.reduce((n,f)=>n+f.quantityFilled,0n);if(quantity<=0n)return null;const notional=fills.reduce((n,f)=>n+f.quantityFilled*(outcome==='YES'?f.fillPrice:one-f.fillPrice),0n);const value=Number(notional)/Number(quantity)/Number(one);return Number.isFinite(value)&&value>0&&value<1?value:null}
 
 const DECISIONS = new Set<TradeDecision>(['UP', 'DOWN', 'SKIP']);
 const CONFIDENCE = new Set<Confidence>(['low', 'medium', 'high']);
@@ -52,7 +54,14 @@ export function riskGate(input: RiskGateInput): RiskResult {
   if (!Number.isFinite(input.limitPrice) || input.limitPrice <= 0 || input.limitPrice >= 1) reasons.push('limit price must be inside (0, 1)');
   if (!Number.isFinite(input.sizeShares) || input.sizeShares <= 0) reasons.push('order size must be positive and finite');
   if (!Number.isFinite(input.liquidityShares) || input.liquidityShares < policy.minLiquidityShares) reasons.push(`${input.liquidityShares} shares liquidity; minimum is ${policy.minLiquidityShares}`);
+  if (Number.isFinite(input.liquidityShares) && Number.isFinite(input.sizeShares) && input.liquidityShares + 1e-9 < input.sizeShares) reasons.push(`${input.liquidityShares} executable shares cannot cover ${input.sizeShares} requested shares`);
   if (!Number.isFinite(input.maxCostTUSDC) || input.maxCostTUSDC <= 0 || input.maxCostTUSDC > policy.maxTradeTUSDC + 1e-9) reasons.push(`maximum cost exceeds ${policy.maxTradeTUSDC} tUSDC`);
   if (input.tradedMarketIds.has(input.marketId.toLowerCase())) reasons.push('marketId already traded');
+  if (!Number.isFinite(input.selectedEdge)) reasons.push('numeric expected edge unavailable');
+  else if (input.selectedEdge! < (input.minimumEdge ?? .03)) reasons.push(`expected edge ${input.selectedEdge!.toFixed(4)} below minimum ${(input.minimumEdge ?? .03).toFixed(4)}`);
+  if (Number.isFinite(input.modelProbabilityUp) && input.decision.decision !== 'SKIP') {
+    const llmDirectionProbability = input.decision.decision === 'UP' ? input.modelProbabilityUp! : 1 - input.modelProbabilityUp!;
+    if (llmDirectionProbability < (input.llmDisagreementThreshold ?? .35)) reasons.push('numeric model strongly disagrees with LLM direction');
+  }
   return { allowed: reasons.length === 0, reason: reasons.length ? reasons.join('; ') : 'all deterministic checks passed' };
 }

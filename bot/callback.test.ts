@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {matchingRequestLog} from './run-cycle.js';
+test('callback matching ignores unrelated and late request ids',()=>{const logs=[{args:{requestId:7n},payload:'wrong'},{args:{requestId:8n},payload:'right'}];assert.equal((matchingRequestLog(logs,8n) as any)?.payload,'right');assert.equal(matchingRequestLog(logs,9n),undefined)});

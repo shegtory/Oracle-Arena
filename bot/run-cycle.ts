@@ -38,8 +38,9 @@ import {
   type Hex,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { deriveExecutionInputs, parseDecision, riskGate, type RiskPolicy } from './risk-gate.js';
+import { deriveExecutionInputs, fillVwap, parseDecision, riskGate, type RiskPolicy } from './risk-gate.js';
 import { medianPrice, MIN_PRICE_SOURCES, PRICE_SOURCES, type PriceAsset } from './price-signal.js';
+import { estimateRealizedVolatility, fairValue, type PriceObservation } from './fair-value.js';
 
 const BOT_DIR = dirname(fileURLToPath(import.meta.url));
 loadEnv(BOT_DIR);
@@ -61,6 +62,11 @@ export const CONFIG = {
   pollMs: 2000,
   timeoutMs: 120000,
   priceSourceTimeoutMs: Number(process.env.PRICE_SOURCE_TIMEOUT_MS ?? 60000),
+  fetchEth: (process.env.FETCH_ETH ?? 'false').toLowerCase() === 'true' || process.env.FETCH_ETH === '1',
+  minimumEdge: Number(process.env.MIN_EXPECTED_EDGE ?? .03),
+  llmDisagreementThreshold: Number(process.env.LLM_DISAGREEMENT_THRESHOLD ?? .35),
+  minVolatilitySamples: Number(process.env.MIN_VOLATILITY_SAMPLES ?? 5),
+  volatilityLookbackSeconds: Number(process.env.VOLATILITY_LOOKBACK_SECONDS ?? 3600),
   scanBlocks: 6000n,
   maxCandidates: 10,
   indexerAttempts: 5,
@@ -160,6 +166,9 @@ const callbackSelector = (name: 'handleResponse' | 'handleLlmResponse') =>
   toFunctionSelector(callbackAbi.find((x) => x.type === 'function' && x.name === name));
 const sleep = (n: number) => new Promise<void>((r) => setTimeout(r, n));
 const nowIso = () => new Date().toISOString();
+export function matchingRequestLog<T extends { args?: { requestId?: bigint | number | string } }>(logs: readonly T[], requestId: bigint): T | undefined {
+  return logs.find(log => log.args?.requestId != null && BigInt(log.args.requestId) === requestId);
+}
 
 function loadTraded() {
   try { return new Set<string>(JSON.parse(readFileSync(CONFIG.stateFile, 'utf8'))); }
@@ -332,6 +341,7 @@ export async function runCycle() {
       filled: Number(filledRaw) / Number(one),
       size: Number(quantity) / Number(one),
       price: Number(priceOwn) / Number(one),
+      averageFillPrice: fillVwap(args.outcome,fills.map(fill=>({quantityFilled:BigInt(fill.quantityFilled),fillPrice:BigInt(fill.fillPrice)})),ctx.config.decimals),
       fills,
     };
   }
@@ -360,6 +370,7 @@ export async function runCycle() {
   const out: any = {
     schemaVersion: 2,
     cycleId: crypto.randomUUID(),
+    deployedCommit: process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GITHUB_SHA ?? null,
     startedAt: nowIso(),
     currentStage: 'initializing',
     stageStartedAt: nowIso(),
@@ -375,6 +386,13 @@ export async function runCycle() {
     marketContext: null, // NEW — contract data the LLM saw
     llmDecision: null,
     riskGate: null,
+    fairValue: null,
+    snapshots: {},
+    costs: { agentRequestCount: 0, agentCostWei: '0' },
+    publicConfig: { dryRun: CONFIG.dryRun, fetchEth: CONFIG.fetchEth, minimumEdge: CONFIG.minimumEdge,
+      llmDisagreementThreshold: CONFIG.llmDisagreementThreshold, minTimeLeftSeconds: CONFIG.minTimeLeftSeconds,
+      minLiquidityShares: CONFIG.minLiquidityShares, maxTradeTUSDC: CONFIG.maxTradeTUSDC,
+      minVolatilitySamples: CONFIG.minVolatilitySamples, volatilityLookbackSeconds: CONFIG.volatilityLookbackSeconds },
     order: null,
     error: null,
   };
@@ -469,7 +487,7 @@ export async function runCycle() {
         RISK_POLICY,
         Date.now(),
       );
-      return { onchain, book, execution, checkedAt: nowIso() };
+      return { onchain, book, execution, yesAsks: normalizeLevels(book.yesAsks), noAsks: normalizeLevels(book.noAsks), checkedAt: nowIso() };
     }
 
     const floor = await pub.readContract({
@@ -497,6 +515,8 @@ export async function runCycle() {
         value,
         account,
       });
+      out.costs.agentRequestCount += 1;
+      out.costs.agentCostWei = (BigInt(out.costs.agentCostWei) + value).toString();
       const tx = await pub.waitForTransactionReceipt({ hash });
       if (tx.status !== 'success') throw Error(`agent tx reverted ${hash}`);
       const topic = toEventSelector(createdAbi[0]);
@@ -519,9 +539,7 @@ export async function runCycle() {
           toBlock: 'latest',
           strict: true,
         });
-        const hit = logs.find(
-          (x: any) => BigInt(x.args.requestId) === id,
-        ) as any;
+        const hit = matchingRequestLog(logs as any[], id) as any;
         if (hit) {
           if (Number(hit.args.status) !== 2)
             throw Error(`callback request ${id} status ${hit.args.status}`);
@@ -579,8 +597,8 @@ export async function runCycle() {
     const current = await sample('bitcoin');
     const pct = (current.usd - first.usd) / first.usd * 100;
     const trend = pct > 0 ? 'UP' : pct < 0 ? 'DOWN' : 'FLAT';
-    stage('eth_price');
-    const eth = await sample('ethereum');
+    let eth = null;
+    if (CONFIG.fetchEth) { stage('eth_price'); eth = await sample('ethereum'); }
     out.priceSignal = {
       method: `median of at least ${MIN_PRICE_SOURCES}/${PRICE_SOURCES.length} on-chain JSON Agent sources per observation`,
       sampleDelayMs: CONFIG.trendDelayMs,
@@ -840,7 +858,22 @@ export async function runCycle() {
       noAsks,
     };
     out.marketContext = marketContext;
+    out.snapshots.preInference = { checkedAt: nowIso(), status: marketContext.status, expiry: marketContext.expiry,
+      secondsLeft: marketContext.secondsLeft, pool: mOnchain.pool, bestYesAsk, bestNoAsk,
+      yesLiquidityShares: yesAsks.reduce((n,[,q])=>n+q,0), noLiquidityShares: noAsks.reduce((n,[,q])=>n+q,0) };
     persist();
+
+    const priorObservations: PriceObservation[]=[];
+    try { const prior=JSON.parse(readFileSync(CONFIG.historyFile,'utf8')); for(const cycle of Array.isArray(prior)?prior:[]) for(const sample of [cycle?.priceSignal?.first,cycle?.priceSignal?.current]) if(sample?.usd&&sample?.receivedAt) priorObservations.push({usd:Number(sample.usd),receivedAt:String(sample.receivedAt)}); } catch { /* first cycle has no history */ }
+    const cutoff=Date.parse(current.receivedAt)-CONFIG.volatilityLookbackSeconds*1000;
+    const volatilityEstimate=estimateRealizedVolatility([...priorObservations,{usd:first.usd,receivedAt:first.receivedAt},{usd:current.usd,receivedAt:current.receivedAt}].filter(x=>Date.parse(x.receivedAt)>=cutoff&&Date.parse(x.receivedAt)<=Date.parse(current.receivedAt)),CONFIG.minVolatilitySamples);
+    const referencePrice = marketContext.openingPrice ?? marketContext.strike;
+    if (!(referencePrice > 0) || volatilityEstimate == null || marketContext.secondsLeft <= CONFIG.minTimeLeftSeconds) {
+      const reason = `fair-value inputs unavailable: valid reference, sufficient time, and at least ${CONFIG.minVolatilitySamples} non-flat price observations are required`;
+      out.llmDecision = { skipped: true, reason }; out.order = { status: 'skipped', reason };
+      out.fairValue = { status:'unavailable', reason, volatilitySamples:volatilityEstimate?.sampleCount??0, minimumVolatilitySamples:CONFIG.minVolatilitySamples };
+      out.currentStage = 'incomplete_model_context'; return out;
+    }
 
     // ---- Stage 7: llm_inference — contract-aware prompt (item 3) ----
     stage('llm_inference');
@@ -918,6 +951,10 @@ Strike relation (spot vs strike, trend direction): ${strikeRelation}
     const text = String(lr.result);
     const decision = parseDecision(text);
 
+    const modelBase={spot:current.usd,referencePrice,secondsLeft:marketContext.secondsLeft,volatility:volatilityEstimate.volatilityPerSqrtSecond};
+    let model = fairValue({ ...modelBase, yesAsk: marketContext.bestYesAsk, noAsk: marketContext.bestNoAsk }, decision.decision === 'DOWN' ? 'NO' : 'YES');
+    out.fairValue = {...model,volatilityEstimate};
+
     out.llmDecision = {
       requestId: lr.id.toString(),
       txHash: lr.hash,
@@ -933,6 +970,10 @@ Strike relation (spot vs strike, trend direction): ${strikeRelation}
     stage('risk_gate');
     const traded = loadTraded();
     let fresh = await freshExecutionSnapshot(chosen.id, decision);
+    const freshYes=fresh.yesAsks[0]?.[0]??Number.NaN,freshNo=fresh.noAsks[0]?.[0]??Number.NaN;
+    model=fairValue({...modelBase,secondsLeft:fresh.execution.secondsLeft,yesAsk:freshYes,noAsk:freshNo},fresh.execution.outcome);
+    model={...model,selectedEdge:(fresh.execution.outcome==='YES'?model.modelProbabilityUp:1-model.modelProbabilityUp)-fresh.execution.limitPrice};
+    out.fairValue={...model,executablePrice:fresh.execution.limitPrice,volatilityEstimate};
     let risk = riskGate({
       decision,
       marketId: chosen.id,
@@ -940,6 +981,8 @@ Strike relation (spot vs strike, trend direction): ${strikeRelation}
       ...fresh.execution,
       tradedMarketIds: traded,
       policy: RISK_POLICY,
+      selectedEdge: model.selectedEdge, minimumEdge: CONFIG.minimumEdge,
+      modelProbabilityUp: model.modelProbabilityUp, llmDisagreementThreshold: CONFIG.llmDisagreementThreshold,
     });
 
     out.riskGate = {
@@ -953,7 +996,12 @@ Strike relation (spot vs strike, trend direction): ${strikeRelation}
       windowSeconds: Number(fresh.onchain.expiry) - Number((fresh.onchain as any).tradingStart ?? fresh.onchain.expiry),
       ...fresh.execution,
       validationCount: 1,
+      expectedValueTUSDC: fresh.execution.sizeShares * model.selectedEdge,
+      minimumEdge: CONFIG.minimumEdge,
     };
+    out.snapshots.postInference = { checkedAt: fresh.checkedAt, status: Number(fresh.onchain.status), expiry: Number(fresh.onchain.expiry),
+      secondsLeft: fresh.execution.secondsLeft, pool: fresh.onchain.pool, bestAsk: fresh.execution.bestAsk,
+      liquidityShares: fresh.execution.liquidityShares };
     if (!risk.allowed) {
       out.order = { status: 'skipped', reason: risk.reason };
       return out;
@@ -966,10 +1014,15 @@ Strike relation (spot vs strike, trend direction): ${strikeRelation}
 
     // ---- Stage 9: order execution through the injected Ankr trader ----
     stage('order_execution');
+    const executionStartedAt = Date.now();
     await ensureAllowance(fresh.onchain, fresh.execution.maxCostTUSDC);
     // Revalidate once more immediately before the wallet write. This prevents
     // approval latency or any earlier processing from making the gate stale.
     fresh = await freshExecutionSnapshot(chosen.id, decision);
+    const writeYes=fresh.yesAsks[0]?.[0]??Number.NaN,writeNo=fresh.noAsks[0]?.[0]??Number.NaN;
+    model=fairValue({...modelBase,secondsLeft:fresh.execution.secondsLeft,yesAsk:writeYes,noAsk:writeNo},fresh.execution.outcome);
+    model={...model,selectedEdge:(fresh.execution.outcome==='YES'?model.modelProbabilityUp:1-model.modelProbabilityUp)-fresh.execution.limitPrice};
+    out.fairValue={...model,executablePrice:fresh.execution.limitPrice,volatilityEstimate};
     risk = riskGate({
       decision,
       marketId: chosen.id,
@@ -977,6 +1030,8 @@ Strike relation (spot vs strike, trend direction): ${strikeRelation}
       ...fresh.execution,
       tradedMarketIds: loadTraded(),
       policy: RISK_POLICY,
+      selectedEdge: model.selectedEdge, minimumEdge: CONFIG.minimumEdge,
+      modelProbabilityUp: model.modelProbabilityUp, llmDisagreementThreshold: CONFIG.llmDisagreementThreshold,
     });
     out.riskGate = {
       ...out.riskGate,
@@ -988,6 +1043,9 @@ Strike relation (spot vs strike, trend direction): ${strikeRelation}
       ...fresh.execution,
       validationCount: 2,
     };
+    out.snapshots.preWrite = { checkedAt: fresh.checkedAt, status: Number(fresh.onchain.status), expiry: Number(fresh.onchain.expiry),
+      secondsLeft: fresh.execution.secondsLeft, pool: fresh.onchain.pool, bestAsk: fresh.execution.bestAsk,
+      liquidityShares: fresh.execution.liquidityShares };
     persist();
     if (!risk.allowed) {
       out.order = { status: 'skipped', reason: `pre-submit revalidation: ${risk.reason}` };
@@ -1013,10 +1071,13 @@ Strike relation (spot vs strike, trend direction): ${strikeRelation}
       filledShares: placed.filled,
       submittedSizeShares: placed.size,
       price: placed.price,
+      averageFillPrice: placed.averageFillPrice,
       rested: placed.rested,
       orderId: placed.orderId?.toString() ?? null,
       fillCount: placed.fills.length,
+      expectedValueAtFillTUSDC: placed.filled * model.selectedEdge,
     };
+    out.latency = { ...(out.latency ?? {}), executionMs: Date.now() - executionStartedAt };
     traded.add(chosen.id.toLowerCase());
     saveTraded(traded);
     return out;
@@ -1025,10 +1086,11 @@ Strike relation (spot vs strike, trend direction): ${strikeRelation}
       at: nowIso(),
       message: e instanceof Error ? e.message : String(e),
     };
+    if (out.currentStage === 'order_execution') out.order = { status: 'reverted', reason: out.error.message };
     return out;
   } finally {
     if (out.error) out.currentStage = 'error';
-    else if (!['no_eligible_market', 'incomplete_market_context'].includes(out.currentStage))
+    else if (!['no_eligible_market', 'incomplete_market_context', 'incomplete_model_context'].includes(out.currentStage))
       out.currentStage = 'complete';
     out.finishedAt = nowIso();
     persist();
@@ -1038,7 +1100,8 @@ Strike relation (spot vs strike, trend direction): ${strikeRelation}
       writeFileSync(
         CONFIG.historyFile,
         JSON.stringify(
-          [out, ...history.filter((x: any) => x.cycleId !== out.cycleId)].slice(0, 20),
+          [out, ...history.filter((x: any) => x?.cycleId && x.cycleId !== out.cycleId)]
+            .sort((a: any, b: any) => (Date.parse(b.finishedAt ?? b.startedAt ?? '') || 0) - (Date.parse(a.finishedAt ?? a.startedAt ?? '') || 0)),
           null,
           2,
         ),
