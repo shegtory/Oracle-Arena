@@ -32,14 +32,14 @@ Somnia agent IDs are numeric protocol identifiers, not addresses or transactions
 
 ## How a cycle works
 
-1. Submit a BTC/USD request to the JSON API Agent and wait for the callback receipt.
-2. Wait for the configured sampling interval, then request a second BTC/USD value and a current ETH/USD value.
+1. Request BTC/USD independently from CoinGecko, Binance, and Coinbase through the JSON API Agent; require at least two valid callbacks and use their median.
+2. Wait for the configured sampling interval, repeat the multi-source BTC observation, then collect a current multi-source ETH/USD median.
 3. Scan recent `MarketCreated` events, read authoritative market state directly from the binary contracts, and inspect raw order-book levels.
 4. Prefer eligible BTC markets with more time remaining and select the first candidate with executable YES and NO liquidity.
 5. Send the price trend, strike, time remaining, and live book context to the LLM Inference Agent.
-6. Parse the constrained response into `UP`, `DOWN`, or `SKIP` plus reasoning and confidence.
-7. Apply the deterministic risk gate: maximum cost, minimum time, minimum book liquidity, valid executable price, and duplicate-market protection.
-8. Submit the order when the gate passes and real execution is enabled; otherwise persist the exact skip or error reason.
+6. Match the callback event to the originating `requestId`, decode that event's payload directly, and strictly parse JSON containing only an `UP`, `DOWN`, or `SKIP` decision, a non-empty bounded reasoning string, and `low`, `medium`, or `high` confidence. Malformed or unknown output fails closed.
+7. Re-read on-chain status, expiry, and the selected-side order book, then apply the deterministic risk gate: maximum cost, minimum time, minimum executable liquidity, valid price/size, and duplicate-market protection.
+8. If real execution is enabled, handle any collateral approval, re-read the market and book once more, and submit only if the second gate passes; otherwise persist the exact skip or error reason.
 9. Merge the new receipt into the persistent telemetry history and reconcile previously traded markets against their on-chain settlement state.
 
 The current implementation intentionally keeps this orchestration in the single file `bot/run-cycle.ts`. It is not split into hypothetical `agents/`, `market/`, or `execution/` subdirectories.
@@ -47,9 +47,10 @@ The current implementation intentionally keeps this orchestration in the single 
 ## Architecture
 
 ```text
-Somnia JSON API Agent ─┐
-                      ├─> Somnia Agents platform ─> AgentCallbackV2
-Somnia LLM Agent ─────┘                                │
+CoinGecko ─┐
+Binance ───┼─> Somnia JSON API Agent ─┐
+Coinbase ──┘                           ├─> Somnia Agents platform ─> AgentCallbackV2
+Somnia LLM Agent ─────────────────────┘                                │
                                                        v
                                               bot/run-cycle.ts
                                               ├─ price sampling
@@ -69,12 +70,24 @@ Somnia LLM Agent ─────┘                                │
 
 The Vercel deployment never relies on its ephemeral filesystem for historical state. GitHub Actions publishes `latest.json` and the capped, merged `history.json` to the dedicated `telemetry` branch; the serverless API functions read that branch at request time.
 
+Callback verification does not rely on the callback contract's mutable “last result” fields. The runner filters `ResponseReceived` or `DecisionReceived` by the exact request ID emitted by `RequestCreated` and decodes the matched event payload, preventing a late callback from being attributed to a different request.
+
+## Execution status semantics
+
+- **Submitted / confirmed:** the order transaction succeeded on-chain, but that alone does not prove a fill.
+- **Filled:** `filledShares > 0`; a value below `submittedSizeShares` is a partial fill and an equal value is a full fill.
+- **Rested / unfilled:** an order ID exists with quantity remaining, while `filledShares` may still be zero.
+- **Skipped:** no order write was attempted because inference, context, risk policy, quorum, or `DRY_RUN` prevented execution.
+- **Reverted / error:** an attempted approval or order transaction failed; it is recorded as an execution error, never as a fill.
+
+Only non-zero fills count as executed orders or become eligible for settled `WIN`/`LOSS` performance.
+
 ## Settled performance
 
 The **Agent Scorecard** is designed to remain informative in both liquid and illiquid testnet conditions. It reports:
 
 - cycles currently tracked in the capped history;
-- orders placed;
+- orders with a non-zero on-chain fill;
 - safe skips, including unavailable liquidity and policy decisions;
 - execution errors;
 - settled wins and losses; and
@@ -132,7 +145,7 @@ Runtime files such as `bot/last-trade-receipt.json`, `bot/trade-history.json`, a
 ## Tech stack
 
 - TypeScript and Node.js
-- Somnia Markets SDK
+- Somnia Markets SDK `0.29.0`
 - viem
 - Solidity
 - React and Vite
@@ -186,6 +199,7 @@ These are the variables present in `.env.example`:
 | `MIN_LIQUIDITY_SHARES` | No | `50` | Minimum executable shares at the limit price |
 | `ASK_PREMIUM` | No | `0.01` | Maximum premium added above the best ask |
 | `TREND_SAMPLE_DELAY_MS` | No | `120000` | Delay between BTC price observations |
+| `PRICE_SOURCE_TIMEOUT_MS` | No | `60000` | Per-provider JSON Agent timeout; failed providers remain visible in telemetry |
 | `DRY_RUN` | No | `true` | Prevents order submission unless explicitly set to `false` |
 | `GITHUB_TOKEN` | Only for manual telemetry publishing | supplied automatically in Actions | Writes `latest.json` and `history.json` to the telemetry branch |
 
@@ -209,6 +223,18 @@ Build the bot and production dashboard:
 
 ```bash
 npm run build
+```
+
+Run the deterministic policy, parsing, freshness, sizing, and settlement tests:
+
+```bash
+npm test
+```
+
+Run typechecking and tests together:
+
+```bash
+npm run verify
 ```
 
 Build only the frontend workspace:
@@ -245,7 +271,7 @@ npm run publish:telemetry
 
 ## Automation and deployment
 
-`.github/workflows/cycle.yml` supports both manual dispatch and a scheduled trigger at minutes `7`, `22`, `37`, and `52` of every hour. Each run:
+`.github/workflows/cycle.yml` runs the key-free verification suite on every push. The paid cycle job is restricted to manual dispatch and scheduled triggers at minutes `7`, `22`, `37`, and `52` of every hour. Each cycle run:
 
 1. installs the npm workspace with `npm ci` on Node.js 24;
 2. validates the `PRIVATE_KEY` repository secret;
@@ -258,7 +284,7 @@ Repository configuration:
 - Actions secret: `PRIVATE_KEY`
 - Actions variable: `DRY_RUN` (`true` or `false`)
 
-GitHub-hosted cron is best-effort and may start later than the nominal minute. The dashboard remains useful between runs because it displays the last persisted receipts rather than pretending a runner is continuously active.
+GitHub-hosted cron is best-effort and may start later than the nominal minute. The dashboard displays the last persisted receipt between cycles, so its telemetry can be stale until the next successful publication; the `DATA LINK` indicator marks receipts older than 15 minutes as `STALE`.
 
 Vercel uses the root configuration:
 
@@ -284,6 +310,10 @@ Both endpoints disable response caching and read the persistent telemetry branch
 - Rotate the testnet wallet immediately if its key is ever exposed.
 - Treat the deterministic risk gate as a safety boundary, not as a guarantee of profitability or contract safety.
 
-## License notice
+## License
 
-The imported DreamDEX integration helpers under `bot/lib/` retain their upstream license in `bot/lib/LICENSE`. No repository-wide license file is currently included.
+Oracle Arena is licensed under the repository-wide [MIT License](LICENSE). Imported DreamDEX integration helpers under `bot/lib/` also retain their upstream license notice in `bot/lib/LICENSE`.
+
+## Price-source integrity
+
+Each observation requests CoinGecko, Binance, and Coinbase independently through the Somnia JSON API Agent. Oracle Arena requires at least two valid positive prices and uses their median. Individual failures are retained in telemetry; if quorum is unavailable, the cycle fails closed rather than inventing a price or silently presenting one provider as multi-source data.
