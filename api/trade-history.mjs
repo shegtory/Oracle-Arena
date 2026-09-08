@@ -1,5 +1,6 @@
 import { send, telemetryFile } from './_telemetry.mjs';
 
-export default async function handler(_req, res) {
+export default async function handler(req, res) {
+  if (req.method && req.method !== 'GET') return send(res, { error: { code: 'method_not_allowed', message: 'GET required' } }, 405);
   send(res, await telemetryFile('history.json', []));
 }
