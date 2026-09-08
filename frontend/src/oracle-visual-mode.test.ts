@@ -1,0 +1,9 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {resolveOracleVisualState} from './oracle-visual-mode.js';
+test('active undecided cycles scan in blue modes',()=>{assert.equal(resolveOracleVisualState({currentStage:'price_sample_1'},{active:true}).label,'SCANNING');assert.equal(resolveOracleVisualState({currentStage:'llm_inference'},{active:true}).label,'ANALYZING');assert.equal(resolveOracleVisualState({currentStage:'risk_gate'},{active:true}).label,'VERIFYING')});
+test('valid final UP and DOWN decisions have priority',()=>{assert.equal(resolveOracleVisualState({llmDecision:{decision:'UP'}},{active:true}).mode,'up');assert.equal(resolveOracleVisualState({llmDecision:{decision:'DOWN'}}).mode,'down')});
+test('pipeline outcome is a secondary direction source',()=>assert.equal(resolveOracleVisualState({riskGate:{outcome:'NO'}}).mode,'down'));
+test('SKIP is neutral and malformed telemetry is fail-safe',()=>{assert.deepEqual(resolveOracleVisualState({llmDecision:{decision:'SKIP'},riskGate:{outcome:'NO'},finishedAt:'x'}).mode,'neutral');assert.equal(resolveOracleVisualState({llmDecision:{decision:'SIDEWAYS'},finishedAt:'x'}).mode,'neutral')});
+test('new cycle does not retain an earlier DOWN decision',()=>assert.equal(resolveOracleVisualState({currentStage:'initializing'},{active:true}).mode,'scanning'));
+test('errors are visually distinct when no direction exists',()=>assert.equal(resolveOracleVisualState({error:{message:'bad'}}).mode,'error'));
+test('history selection resolves from that receipt',()=>assert.equal(resolveOracleVisualState({finishedAt:'x',llmDecision:{decision:'UP'}}).label,'UP'));
+test('a BTC decision is not shown while inspecting ETH',()=>assert.equal(resolveOracleVisualState({finishedAt:'x',marketContext:{asset:'BTC'},llmDecision:{decision:'DOWN'}},{selectedAsset:'ETH'}).mode,'neutral'));
