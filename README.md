@@ -91,7 +91,7 @@ Somnia LLM Agent ─────────────────────
                                       Vercel JSON APIs ─> React dashboard
 ```
 
-The Vercel deployment never relies on its ephemeral filesystem for historical state. GitHub Actions publishes `latest.json` and the capped, merged `history.json` to the dedicated `telemetry` branch; the serverless API functions read that branch at request time.
+The Vercel deployment never relies on its ephemeral filesystem for historical state. GitHub Actions publishes `latest.json` and the complete deduplicated, newest-first `history.json` to the dedicated `telemetry` branch; the serverless API functions read that branch at request time. The dashboard paginates the archive in groups of ten without truncating stored cycles.
 
 Callback verification does not rely on the callback contract's mutable “last result” fields. The runner filters `ResponseReceived` or `DecisionReceived` by the exact request ID emitted by `RequestCreated` and decodes the matched event payload, preventing a late callback from being attributed to a different request.
 
@@ -333,7 +333,7 @@ outputDirectory: frontend/dist
 - `GET /api/cycles/:id/evidence`
 - `GET /api/performance`
 
-All endpoints are read-only, disable response caching, and read the persistent telemetry branch in production. The four new routes describe the current working tree and will not exist on the live deployment until explicitly deployed. A compact OpenAPI description is stored in `openapi.json`.
+All endpoints are deployed, read-only, disable response caching, and read the persistent telemetry branch in production. A compact OpenAPI description is stored in `openapi.json`.
 
 ## Limitations
 
@@ -341,7 +341,7 @@ All endpoints are read-only, disable response caching, and read the persistent t
 - A confirmed order is not a fill. Only `filledShares > 0` contributes to fills and settlement; stake/PnL additionally require the actual fill VWAP, never the submitted limit price.
 - Winning payout and realized PnL remain `unknown` until redeem is confirmed and the received collateral is measured. The attached Agent request value is recorded, but net Agent/gas cost remains `unknown` because refunds/final billing are not yet measured.
 - Testnet liquidity and the observed WIN/LOSS sample are too small for a profitability claim. The dashboard displays `Small sample — not statistically significant` below 30 resolved non-void fills.
-- These changes are implemented and tested locally but are not live until a separately approved deployment.
+- Production deployment status and its exact source commit are recorded by the GitHub/Vercel deployment integration; live telemetry receipts also include `deployedCommit` when produced by the workflow.
 
 ## Security
 
