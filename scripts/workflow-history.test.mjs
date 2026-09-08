@@ -10,5 +10,6 @@ test('cycle workflow hydrates published history before running the model', async
   assert.ok(hydrate >= 0, 'history hydration step is missing');
   assert.ok(run > hydrate, 'history must be hydrated before the cycle starts');
   assert.match(workflow, /telemetry\/history\.json/);
+  assert.match(workflow, /\?run=\$\{GITHUB_RUN_ID\}-\$\{GITHUB_RUN_ATTEMPT\}/);
   assert.match(workflow, /Published history must be an array/);
 });
