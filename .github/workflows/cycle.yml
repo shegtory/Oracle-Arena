@@ -1,6 +1,7 @@
 name: Run Oracle Arena cycle
 
 on:
+  push:
   schedule:
     # Avoid the top-of-hour load spike where GitHub may delay scheduled jobs.
     - cron: '7,22,37,52 * * * *'
@@ -14,7 +15,20 @@ permissions:
   contents: write
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run verify
+      - run: npm run build
+
   cycle:
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
