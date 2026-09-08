@@ -53,6 +53,13 @@ jobs:
             exit 1
           fi
 
+      - name: Hydrate published cycle history
+        run: |
+          curl --fail --retry 3 --silent --show-error \
+            "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/telemetry/history.json" \
+            --output bot/trade-history.json
+          node -e "const h=require('./bot/trade-history.json'); if(!Array.isArray(h)) throw new Error('Published history must be an array'); console.log('Hydrated '+h.length+' cycle(s)')"
+
       - name: Run cycle
         run: |
           for attempt in 1 2 3; do
