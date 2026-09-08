@@ -16,6 +16,17 @@ const marketAbi = parseAbi([
   'function isVoided() view returns (bool)',
 ]);
 
+export function computeSettlement(entry, { isResolved, isVoided, payouts }, checkedAt = new Date().toISOString()) {
+  if (isVoided) return { status: 'voided', checkedAt, marketOutcome: null, result: 'VOID' };
+  if (!isResolved) return { status: 'pending', checkedAt, marketOutcome: null, result: null };
+  let winner = 0;
+  for (let index = 1; index < payouts.length; index++) if ((payouts[index] ?? 0n) > (payouts[winner] ?? 0n)) winner = index;
+  const marketOutcome = winner === 0 ? 'YES' : 'NO';
+  const position = entry?.riskGate?.outcome || (entry?.llmDecision?.decision === 'UP' ? 'YES' : entry?.llmDecision?.decision === 'DOWN' ? 'NO' : null);
+  const result = (entry?.order?.filledShares ?? 0) > 0 && position ? (position === marketOutcome ? 'WIN' : 'LOSS') : 'SKIP';
+  return { status: 'resolved', checkedAt, marketOutcome, position, result };
+}
+
 export async function reconcileHistory(history, options = {}) {
   const rpc = options.rpc || process.env.RPC_URL || 'https://rpc.ankr.com/somnia_testnet';
   const moduleAddress = options.moduleAddress || process.env.BINARY_MODULE || '0x3ecC694Cef705358864a646142ac17A90E29e388';
@@ -36,19 +47,7 @@ export async function reconcileHistory(history, options = {}) {
         client.readContract({ address: marketAddress, abi: marketAbi, functionName: 'isVoided' }),
         client.readContract({ address: marketAddress, abi: marketAbi, functionName: 'payoutNumerators' }),
       ]);
-      let settlement;
-      if (isVoided) {
-        settlement = { status: 'voided', checkedAt: new Date().toISOString(), marketOutcome: null, result: 'VOID' };
-      } else if (isResolved) {
-        let winner = 0;
-        for (let index = 1; index < payouts.length; index++) if ((payouts[index] ?? 0n) > (payouts[winner] ?? 0n)) winner = index;
-        const marketOutcome = winner === 0 ? 'YES' : 'NO';
-        const position = entry?.riskGate?.outcome || (entry?.llmDecision?.decision === 'UP' ? 'YES' : entry?.llmDecision?.decision === 'DOWN' ? 'NO' : null);
-        const result = entry?.order?.status === 'confirmed' && position ? (position === marketOutcome ? 'WIN' : 'LOSS') : 'SKIP';
-        settlement = { status: 'resolved', checkedAt: new Date().toISOString(), marketOutcome, position, result };
-      } else {
-        settlement = { status: 'pending', checkedAt: new Date().toISOString(), marketOutcome: null, result: null };
-      }
+      const settlement = computeSettlement(entry, { isResolved, isVoided, payouts });
       next.push({ ...entry, settlement });
     } catch (error) {
       next.push({ ...entry, settlement: { status: 'error', checkedAt: new Date().toISOString(), marketOutcome: null, result: null, error: error instanceof Error ? error.message.slice(0, 300) : String(error).slice(0, 300) } });

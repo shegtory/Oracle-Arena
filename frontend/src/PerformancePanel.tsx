@@ -5,10 +5,10 @@ const decisionOf = (cycle: TradeReceipt) => cycle.llmDecision?.decision ?? 'SKIP
 const confidenceOf = (cycle: TradeReceipt) => cycle.llmDecision?.confidence?.toUpperCase() ?? '—';
 
 export function PerformancePanel({ history }: { history: TradeReceipt[] }) {
-  const orders = history.filter((cycle) => cycle.order?.status === 'confirmed').length;
+  const orders = history.filter((cycle) => (cycle.order?.filledShares ?? 0) > 0).length;
   const errors = history.filter((cycle) => cycle.error).length;
   const skipped = history.filter((cycle) => cycle.order?.status === 'skipped' || cycle.llmDecision?.skipped || (!cycle.order && !cycle.error)).length;
-  const settled = history.filter((cycle) => ['resolved', 'voided'].includes(cycle.settlement?.status ?? ''));
+  const settled = history.filter((cycle) => cycle.settlement?.status === 'voided' || (cycle.settlement?.status === 'resolved' && (cycle.order?.filledShares ?? 0) > 0));
   const wins = settled.filter((cycle) => cycle.settlement?.result === 'WIN').length;
   const losses = settled.filter((cycle) => cycle.settlement?.result === 'LOSS').length;
   const decided = wins + losses;
