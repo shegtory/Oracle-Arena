@@ -18,7 +18,7 @@ export function PerformancePanel({ history }: { history: TradeReceipt[] }) {
   const payoutKnown = filled.every(c=>c.settlement?.result==='LOSS'||(c.redeem?.status==='confirmed'&&Number.isFinite(c.redeem.amountReceived)));
   const payout = history.reduce((n,c)=>n+(c.redeem?.status==='confirmed'?(c.redeem.amountReceived??0):0),0);
   const cycleLatencies=history.map(c=>Date.parse(c.finishedAt??'')-Date.parse(c.startedAt??'')).filter(Number.isFinite);const avgCycle=cycleLatencies.length?cycleLatencies.reduce((a,b)=>a+b,0)/cycleLatencies.length:null;
-  const costKnown=history.length>0&&history.every(c=>c.costs?.agentCostWei!=null);const totalAgentCost=costKnown?history.reduce((n,c)=>n+BigInt(c.costs!.agentCostWei),0n).toString():'UNKNOWN';
+  const costKnown=history.length>0&&history.every(c=>c.costs?.agentCostWei!=null);const totalAgentCost=costKnown?history.reduce((n,c)=>n+BigInt(c.costs!.agentCostWei),0n).toString():'NOT MEASURED';
 
   return <section className="performance-section">
     <div className="section-title"><div><BarChart3/><span>SETTLED PERFORMANCE</span></div><h2>AGENT SCORECARD <em>/ ON-CHAIN RECONCILED</em></h2><p>RESOLUTIONS REFRESH EACH CYCLE</p></div>
@@ -27,7 +27,7 @@ export function PerformancePanel({ history }: { history: TradeReceipt[] }) {
       <div><small>FILLED TRADES</small><strong>{orders}</strong></div>
       <div><small>SAFE SKIPS</small><strong>{skipped}</strong></div>
       <div><small>ERRORS</small><strong>{errors}</strong></div>
-      <div><small>FILL RATE</small><strong>{fillRate}</strong></div><div><small>STAKE</small><strong>{stake==null?'UNKNOWN':stake.toFixed(3)}</strong><span>tUSDC</span></div><div><small>REALIZED PNL</small><strong>{payoutKnown&&stake!=null?(payout-stake).toFixed(3):'UNKNOWN'}</strong></div><div><small>AVG CYCLE</small><strong>{avgCycle==null?'UNKNOWN':`${Math.round(avgCycle)}ms`}</strong></div><div><small>AGENT REQUEST VALUE</small><strong>{totalAgentCost}</strong><span>{costKnown?'wei attached; net cost unknown':'unmeasured legacy data'}</span></div>
+      <div><small>FILL RATE</small><strong>{fillRate}</strong></div><div><small>STAKE</small><strong>{stake==null?'NOT MEASURED':stake.toFixed(3)}</strong><span>tUSDC</span></div><div><small>REALIZED PNL</small><strong>{payoutKnown&&stake!=null?(payout-stake).toFixed(3):'NOT MEASURED'}</strong></div><div><small>AVG CYCLE</small><strong>{avgCycle==null?'NOT MEASURED':`${Math.round(avgCycle)}ms`}</strong></div><div><small>AGENT REQUEST VALUE</small><strong>{totalAgentCost}</strong><span>{costKnown?'Wei attached; net cost not measured':'Not measured for legacy cycles'}</span></div>
       <div><small>WIN RATE</small><strong className={wins ? 'result--win' : ''}>{winRate}</strong><span>{wins}W / {losses}L</span></div>
     </div>
     {decided<30&&<p className="sample-warning">Small sample — not statistically significant</p>}<div className="settled-list">

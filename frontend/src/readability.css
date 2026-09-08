@@ -1,0 +1,181 @@
+/* Retain the HUD language while keeping operational detail legible. */
+:root {
+  --text-main: #e7fbff;
+  --text-secondary: #9fc5cd;
+  --text-muted: #78a9b3;
+  --reading-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.brand p,
+.system-strip small,
+.orb-caption span,
+.side-readout p,
+.metrics small,
+.stage-body small,
+.market-grid small,
+.stage-code,
+.timeline-card header small,
+.market-panel header small,
+.proof-panel small,
+.performance-stats small,
+.settled-row small {
+  color: var(--text-muted);
+}
+
+.system-strip small,
+.orb-caption span,
+.side-readout p,
+.metrics small,
+.stage-body small,
+.market-grid small,
+.section-title span,
+.performance-stats small,
+.settled-row small {
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.section-title p,
+.stage-body p,
+.proof-panel p,
+.settlement-empty p,
+.performance-stats span,
+.sample-warning,
+.archive-empty {
+  font-family: var(--reading-font);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.section-title p {
+  max-width: 62ch;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.stage-body p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.proof-panel p,
+.settlement-empty p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.performance-stats span {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.sample-warning {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #ffd978;
+}
+
+.timeline {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.timeline-card {
+  min-width: 0;
+}
+
+.model-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.history-strip small,
+.history-strip span,
+.archive-cycle code {
+  font-size: 10px;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.history-strip span {
+  font-family: var(--reading-font);
+  letter-spacing: 0.02em;
+}
+
+.archive-cycle code {
+  font-size: 9px;
+}
+
+.asset-toggle button,
+.archive-live,
+.archive-pagination button {
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.stage-body a,
+.proof-links a,
+.orb-caption a,
+.market-panel a,
+.evidence-download {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(0, 217, 255, 0.18), 0 0 18px rgba(0, 217, 255, 0.28);
+}
+
+@media (min-width: 701px) and (max-width: 1200px) {
+  .timeline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stage-line {
+    display: none;
+  }
+
+  .model-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .timeline {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .section-title p {
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .stage-body p,
+  .proof-panel p,
+  .settlement-empty p {
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .model-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .asset-toggle button,
+  .archive-live,
+  .archive-pagination button {
+    font-size: 11px;
+  }
+
+  .history-strip small,
+  .history-strip span {
+    font-size: 10px;
+  }
+}
