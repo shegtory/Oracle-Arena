@@ -2,6 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { reconcileHistory } from './reconcile-history.mjs';
 import { createRedeemDeps, redeemHistory } from './redeem-history.mjs';
+import { readGithubContentJson } from './github-content-json.mjs';
 
 const token = process.env.GITHUB_TOKEN;
 const repository = process.env.GITHUB_REPOSITORY || 'shegtory/Oracle-Arena';
@@ -21,16 +22,6 @@ async function request(path, options = {}) {
   if (!response.ok) throw new Error(`${options.method || 'GET'} ${path}: ${response.status} ${await response.text()}`);
   return response.json();
 }
-async function readRemoteJson(path, fallback) {
-  try {
-    const file = await request(`/contents/${path}?ref=${encodeURIComponent(branch)}`);
-    return JSON.parse(Buffer.from(file.content, 'base64').toString('utf8'));
-  } catch (error) {
-    if (String(error).includes('404')) return fallback;
-    throw error;
-  }
-}
-
 let parent;
 try {
   parent = (await request(`/git/ref/heads/${branch}`)).object.sha;
@@ -43,7 +34,7 @@ try {
 
 const latest = JSON.parse(await readFile(resolve('bot', 'last-trade-receipt.json'), 'utf8'));
 const localHistory = JSON.parse(await readFile(resolve('bot', 'trade-history.json'), 'utf8'));
-const remoteHistory = await readRemoteJson('history.json', []);
+const remoteHistory = await readGithubContentJson(request, 'history.json', branch, []);
 let mergedHistory = await reconcileHistory([...(Array.isArray(localHistory) ? localHistory : []), ...(Array.isArray(remoteHistory) ? remoteHistory : [])]
   .filter((entry, index, all) => entry?.cycleId && all.findIndex((candidate) => candidate?.cycleId === entry.cycleId) === index)
   .sort((a, b) => (Date.parse(b.finishedAt || b.startedAt || 0) || 0) - (Date.parse(a.finishedAt || a.startedAt || 0) || 0)));
