@@ -1,6 +1,437 @@
 [
   {
     "schemaVersion": 2,
+    "cycleId": "99f35032-2462-40bf-b262-e6a63c4b176a",
+    "deployedCommit": "4ca779d20f39956cb47d21419c41bcc630312b6d",
+    "startedAt": "2026-09-18T08:15:36.652Z",
+    "currentStage": "complete",
+    "stageStartedAt": "2026-09-18T08:18:04.304Z",
+    "network": {
+      "chainId": 50312,
+      "name": "Somnia Testnet",
+      "rpc": "https://rpc.ankr.com/somnia_testnet"
+    },
+    "agents": {
+      "jsonApiAgentId": "13174292974160097713",
+      "llmInferenceAgentId": "12847293847561029384",
+      "callbackAddress": "0x4c88a0b56E8AdBe91328fac6F9ddD1C5619B84Df",
+      "platformAddress": "0x037Bb9C718F3f7fe5eCBDB0b600D607b52706776"
+    },
+    "discovery": {
+      "head": "491460536",
+      "fromBlock": "491454537",
+      "scanBlocks": "6000",
+      "scanChunks": 6,
+      "scanAttempts": 1,
+      "maxCandidates": 10,
+      "metadataSource": "on-chain MarketCreated event",
+      "candidates": [
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001c7f5",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 124,
+          "question": "ETH closes at or above its opening price",
+          "strike": "0",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001c7f4",
+          "asset": "BTC",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 124,
+          "question": "BTC closes at or above its opening price",
+          "strike": "0",
+          "metadataSource": "MarketCreated event",
+          "error": null,
+          "orderBook": {
+            "source": "getBookLevels",
+            "rawYesBids": [
+              {
+                "price": "943000",
+                "quantity": "100000000"
+              },
+              {
+                "price": "935000",
+                "quantity": "165000000"
+              },
+              {
+                "price": "928000",
+                "quantity": "230000000"
+              },
+              {
+                "price": "594000",
+                "quantity": "6542000"
+              }
+            ],
+            "rawYesAsks": [
+              {
+                "price": "964000",
+                "quantity": "98518000"
+              },
+              {
+                "price": "971000",
+                "quantity": "165000000"
+              },
+              {
+                "price": "979000",
+                "quantity": "230000000"
+              }
+            ],
+            "derivedNoAsks": [
+              {
+                "price": "57000",
+                "quantity": "100000000"
+              },
+              {
+                "price": "65000",
+                "quantity": "165000000"
+              },
+              {
+                "price": "72000",
+                "quantity": "230000000"
+              },
+              {
+                "price": "406000",
+                "quantity": "6542000"
+              }
+            ],
+            "usableYesAsk": 0.964,
+            "usableNoAsk": 0.057,
+            "error": null
+          }
+        },
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001c7f3",
+          "asset": "ETH",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 724,
+          "question": "ETH closes at or above its opening price",
+          "strike": "0",
+          "metadataSource": "MarketCreated event",
+          "error": null
+        },
+        {
+          "marketId": "0x000000000000000000000000000000000000000000000000000000000001c7f2",
+          "asset": "BTC",
+          "status": 1,
+          "isTradable": true,
+          "secondsLeft": 723,
+          "question": "BTC closes at or above its opening price",
+          "strike": "0",
+          "metadataSource": "MarketCreated event",
+          "error": null,
+          "orderBook": {
+            "source": "getBookLevels",
+            "rawYesBids": [
+              {
+                "price": "766000",
+                "quantity": "100000000"
+              },
+              {
+                "price": "755000",
+                "quantity": "165000000"
+              },
+              {
+                "price": "744000",
+                "quantity": "230000000"
+              }
+            ],
+            "rawYesAsks": [
+              {
+                "price": "797000",
+                "quantity": "100000000"
+              },
+              {
+                "price": "808000",
+                "quantity": "165000000"
+              },
+              {
+                "price": "816000",
+                "quantity": "230000000"
+              }
+            ],
+            "derivedNoAsks": [
+              {
+                "price": "234000",
+                "quantity": "100000000"
+              },
+              {
+                "price": "245000",
+                "quantity": "165000000"
+              },
+              {
+                "price": "256000",
+                "quantity": "230000000"
+              }
+            ],
+            "usableYesAsk": 0.797,
+            "usableNoAsk": 0.234,
+            "error": null
+          }
+        }
+      ]
+    },
+    "priceSignal": {
+      "method": "median of at least 2/3 on-chain JSON Agent sources per observation",
+      "sampleDelayMs": 120000,
+      "first": {
+        "asset": "BTC",
+        "method": "multi-source median",
+        "minimumSources": 2,
+        "successfulSources": 3,
+        "sources": [
+          {
+            "source": "CoinGecko",
+            "ok": true,
+            "requestId": "14440062",
+            "txHash": "0xfff892e30f630d9f122e3d4ec13007d22c406903abd3cbbcd2f9e04c5ab86cea",
+            "valueWei": "120000000000000000",
+            "raw": "7774100000000",
+            "usd": 77741,
+            "receivedAt": "2026-09-18T08:15:39.262Z"
+          },
+          {
+            "source": "Binance",
+            "ok": true,
+            "requestId": "14440064",
+            "txHash": "0x346fba28b23ec16a1eb9cd7226bad7d014269a08077be8c56991bda7a1472b95",
+            "valueWei": "120000000000000000",
+            "raw": "7776000000000",
+            "usd": 77760,
+            "receivedAt": "2026-09-18T08:15:42.826Z"
+          },
+          {
+            "source": "Coinbase",
+            "ok": true,
+            "requestId": "14440069",
+            "txHash": "0x77f336edf93b0a3aaca5afcfb18ecc4ee19949fa2a1d6ef28ed5dd0453f490e5",
+            "valueWei": "120000000000000000",
+            "raw": "7769623500000",
+            "usd": 77696.235,
+            "receivedAt": "2026-09-18T08:15:46.167Z"
+          }
+        ],
+        "requestId": "14440062",
+        "txHash": "0xfff892e30f630d9f122e3d4ec13007d22c406903abd3cbbcd2f9e04c5ab86cea",
+        "valueWei": "120000000000000000",
+        "raw": "7774100000000",
+        "usd": 77741,
+        "receivedAt": "2026-09-18T08:15:46.168Z"
+      },
+      "current": {
+        "asset": "BTC",
+        "method": "multi-source median",
+        "minimumSources": 2,
+        "successfulSources": 3,
+        "sources": [
+          {
+            "source": "CoinGecko",
+            "ok": true,
+            "requestId": "14440192",
+            "txHash": "0xb3e1c310b7d587a013225e3bef470223e8e4abab38cc8550e2c2b796a56cc8b6",
+            "valueWei": "120000000000000000",
+            "raw": "7774200000000",
+            "usd": 77742,
+            "receivedAt": "2026-09-18T08:17:49.758Z"
+          },
+          {
+            "source": "Binance",
+            "ok": true,
+            "requestId": "14440199",
+            "txHash": "0x6e0c3005c2eb14bcae7182d0c0e46631105b3fa46638568e61d6e01f09c56772",
+            "valueWei": "120000000000000000",
+            "raw": "7788101000000",
+            "usd": 77881.01,
+            "receivedAt": "2026-09-18T08:17:52.867Z"
+          },
+          {
+            "source": "Coinbase",
+            "ok": true,
+            "requestId": "14440205",
+            "txHash": "0xb73eb12bc89a9a5bdb81722103a9c40c52035179fe568f4b9432e965d687dbd4",
+            "valueWei": "120000000000000000",
+            "raw": "7780200500000",
+            "usd": 77802.005,
+            "receivedAt": "2026-09-18T08:17:56.034Z"
+          }
+        ],
+        "requestId": "14440205",
+        "txHash": "0xb73eb12bc89a9a5bdb81722103a9c40c52035179fe568f4b9432e965d687dbd4",
+        "valueWei": "120000000000000000",
+        "raw": "7780200500000",
+        "usd": 77802.005,
+        "receivedAt": "2026-09-18T08:17:56.034Z"
+      },
+      "eth": null,
+      "changePct": 0.07847210609588846,
+      "trend": "UP"
+    },
+    "marketContext": {
+      "marketId": "0x000000000000000000000000000000000000000000000000000000000001c7f2",
+      "asset": "BTC",
+      "question": "BTC closes at or above its opening price",
+      "strike": 0,
+      "strikeRaw": "0",
+      "openingPrice": 77711.52,
+      "openingPriceRaw": "7771152",
+      "bestYesAsk": 0.797,
+      "bestNoAsk": 0.234,
+      "mid": 0.5155000000000001,
+      "tradingStart": 1789719300,
+      "expiry": 1789720200,
+      "secondsLeft": 723,
+      "timeLeft": 723,
+      "intervalSec": 900,
+      "status": 1,
+      "yesAsks": [
+        [
+          0.797,
+          100
+        ],
+        [
+          0.808,
+          165
+        ],
+        [
+          0.816,
+          230
+        ]
+      ],
+      "noAsks": [
+        [
+          0.234,
+          100
+        ],
+        [
+          0.245,
+          165
+        ],
+        [
+          0.256,
+          230
+        ]
+      ]
+    },
+    "llmDecision": {
+      "requestId": "14440216",
+      "txHash": "0xd688ae4cb410cb0b65ce83b2296ccef7314d80d0c9d4e1ab57ff4194c11748ba",
+      "valueWei": "240000000000000000",
+      "raw": "{\"decision\":\"UP\",\"reasoning\":\"The current spot price is above the strike and trending upward, suggesting a higher likelihood of closing at or above the strike.\",\"confidence\":\"medium\"}",
+      "decision": "UP",
+      "confidence": "medium",
+      "reasoning": "The current spot price is above the strike and trending upward, suggesting a higher likelihood of closing at or above the strike.",
+      "receivedAt": "2026-09-18T08:18:04.304Z",
+      "promptSent": "You are a conservative crypto signal agent for a binary event contract.\nYou must output ONLY valid JSON: {\"decision\":\"UP|DOWN|SKIP\",\"reasoning\":\"one sentence\",\"confidence\":\"low|medium|high\"}\n\n=== MARKET CONTEXT (the specific contract you would trade) ===\nAsset:              BTC\nMarket ID:          0x000000000000000000000000000000000000000000000000000000000001c7f2\nStrike (resolve against): $0.00\nOpening price (reference oracle): $77711.52\nCurrent BTC/USD spot: 77802.01  (moved from 77741.00 in 120s, 0.0785%, trend UP)\nBest YES ask:       0.7970   (prob of YES ≈ 79.70%)\nBest NO ask:        0.2340   (prob of NO ≈ 23.40%)\nMid probability:    0.5155\nTime left until expiry: 723s\nCadence:            900s (15m)\nStatus:             Trading\n\n=== WHAT THE DECISION MEANS ===\n- UP = buy YES  (bet the event happens / price closes at-or-above strike)\n- DOWN = buy NO  (bet the event does not happen / price closes below strike)\n- SKIP = no trade this cycle\n\n=== REASONING GUIDANCE ===\nThink relative to THIS contract's strike and opening price, not generic momentum.\nAsk yourself:\n  1. Is the current spot price above or below the strike, and is it trending toward or away from it?\n  2. Does the current spot price, projected forward over the time left, plausibly cross the strike?\n  3. Does the order-book implied probability (YES ask / NO ask) agree or disagree with the spot trend?\n  4. Is there enough time left for the trend to resolve, or is expiry too close?\n  5. Is the evidence weak or conflicting — if so, SKIP.\n\nStrike relation (spot vs strike, trend direction): above_strike_rising\n\n{{\"decision\":\"UP|DOWN|SKIP\",\"reasoning\":\"...\",\"confidence\":\"low|medium|high\"}}"
+    },
+    "riskGate": {
+      "allowed": false,
+      "reason": "expected edge -0.0806 below minimum 0.0300",
+      "checkedAt": "2026-09-18T08:18:04.615Z",
+      "marketId": "0x000000000000000000000000000000000000000000000000000000000001c7f2",
+      "pool": "0xb5D2d6f6cF27F635dafe663b087bC1F01a36C4A1",
+      "marketStatus": 1,
+      "tradingStart": 1789719300,
+      "expiry": 1789720200,
+      "windowSeconds": 900,
+      "outcome": "YES",
+      "bestAsk": 0.797,
+      "limitPrice": 0.807,
+      "sizeShares": 6.195,
+      "maxCostTUSDC": 4.999365000000001,
+      "liquidityShares": 100,
+      "secondsLeft": 716,
+      "validationCount": 1,
+      "expectedValueTUSDC": -0.4992349729062058,
+      "minimumEdge": 0.03
+    },
+    "fairValue": {
+      "modelProbabilityUp": 0.726413240854527,
+      "marketProbabilityUp": 0.7730358874878758,
+      "edgeUp": -0.07058675914547308,
+      "edgeDown": 0.03958675914547302,
+      "selectedEdge": -0.08058675914547309,
+      "selectedOutcome": "YES",
+      "modelVersion": "digital-lognormal-v1",
+      "modelInputs": {
+        "spot": 77802.005,
+        "referencePrice": 77711.52,
+        "secondsLeft": 716,
+        "volatility": 0.00007224119178131098,
+        "yesAsk": 0.797,
+        "noAsk": 0.234
+      },
+      "executablePrice": 0.807,
+      "volatilityEstimate": {
+        "volatilityPerSqrtSecond": 0.00007224119178131098,
+        "sampleCount": 8,
+        "returnCount": 7,
+        "windowSeconds": 2828.033,
+        "startedAt": "2026-09-18T07:30:48.001Z",
+        "endedAt": "2026-09-18T08:17:56.034Z"
+      }
+    },
+    "snapshots": {
+      "preInference": {
+        "checkedAt": "2026-09-18T08:17:59.007Z",
+        "status": 1,
+        "expiry": 1789720200,
+        "secondsLeft": 723,
+        "pool": "0xb5D2d6f6cF27F635dafe663b087bC1F01a36C4A1",
+        "bestYesAsk": 0.797,
+        "bestNoAsk": 0.234,
+        "yesLiquidityShares": 495,
+        "noLiquidityShares": 495
+      },
+      "postInference": {
+        "checkedAt": "2026-09-18T08:18:04.615Z",
+        "status": 1,
+        "expiry": 1789720200,
+        "secondsLeft": 716,
+        "pool": "0xb5D2d6f6cF27F635dafe663b087bC1F01a36C4A1",
+        "bestAsk": 0.797,
+        "liquidityShares": 100
+      }
+    },
+    "costs": {
+      "agentRequestCount": 7,
+      "agentCostWei": "960000000000000000"
+    },
+    "publicConfig": {
+      "dryRun": true,
+      "fetchEth": false,
+      "minimumEdge": 0.03,
+      "llmDisagreementThreshold": 0.35,
+      "minTimeLeftSeconds": 15,
+      "minLiquidityShares": 50,
+      "maxTradeTUSDC": 5,
+      "minVolatilitySamples": 5,
+      "volatilityLookbackSeconds": 3600
+    },
+    "order": {
+      "status": "skipped",
+      "reason": "expected edge -0.0806 below minimum 0.0300"
+    },
+    "error": null,
+    "finishedAt": "2026-09-18T08:18:04.616Z",
+    "settlement": {
+      "status": "pending",
+      "checkedAt": "2026-09-18T08:18:10.326Z",
+      "marketOutcome": null,
+      "result": null
+    },
+    "redeem": {
+      "status": "not_eligible",
+      "checkedAt": "2026-09-18T08:18:10.610Z",
+      "reason": "requires a real non-zero fill"
+    }
+  },
+  {
+    "schemaVersion": 2,
     "cycleId": "43ecb954-9d96-492a-a6c7-d5a1bf0f0b88",
     "deployedCommit": "4ca779d20f39956cb47d21419c41bcc630312b6d",
     "startedAt": "2026-09-18T08:00:43.245Z",
@@ -547,7 +978,7 @@
     "finishedAt": "2026-09-18T08:03:11.282Z",
     "settlement": {
       "status": "pending",
-      "checkedAt": "2026-09-18T08:03:17.093Z",
+      "checkedAt": "2026-09-18T08:18:10.455Z",
       "marketOutcome": null,
       "result": null
     },
@@ -15905,7 +16336,7 @@
     "finishedAt": "2026-09-18T00:03:13.780Z",
     "settlement": {
       "status": "pending",
-      "checkedAt": "2026-09-18T08:03:17.601Z",
+      "checkedAt": "2026-09-18T08:18:10.583Z",
       "marketOutcome": null,
       "result": null
     },
@@ -231467,7 +231898,7 @@
     },
     "redeem": {
       "status": "eligible",
-      "checkedAt": "2026-09-18T08:03:17.938Z",
+      "checkedAt": "2026-09-18T08:18:10.924Z",
       "idempotencyKey": "0x000000000000000000000000000000000000000000000000000000000001660d:YES:0xbd2e04cd5f42079eeec66fa0cf79b03e93362af8",
       "amountClaimable": 5.74,
       "amountReceived": null,
@@ -233379,7 +233810,7 @@
     },
     "redeem": {
       "status": "not_eligible",
-      "checkedAt": "2026-09-18T08:03:18.126Z",
+      "checkedAt": "2026-09-18T08:18:11.117Z",
       "idempotencyKey": "0x0000000000000000000000000000000000000000000000000000000000015199:YES:0xbd2e04cd5f42079eeec66fa0cf79b03e93362af8",
       "amountClaimable": 0,
       "reason": "held outcome has zero payout"
